@@ -1291,10 +1291,13 @@ open class RawFirBuilder(
                                 baseModuleData, context.packageFqName, context.className,
                                 classIsExpect
                             )
-                            generateEntriesGetter(
-                                baseModuleData, context.packageFqName, context.className,
-                                classIsExpect
-                            )
+
+                            if (!classOrObject.hasModifier(EXTERNAL_KEYWORD)) {
+                                generateEntriesGetter(
+                                    baseModuleData, context.packageFqName, context.className,
+                                    classIsExpect
+                                )
+                            }
                         }
 
                         initCompanionObjectSymbolAttr()
