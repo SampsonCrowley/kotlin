@@ -180,3 +180,11 @@ internal expect annotation class JvmPackageName(val name: String)
 @SinceKotlin("1.8")
 @OptionalExpectation
 public expect annotation class JvmSerializableLambda
+
+/**
+ * Ensures that the annotated element can be seamlessly called from Java.
+ */
+@Target(FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CONSTRUCTOR)
+@MustBeDocumented
+@OptionalExpectation
+public expect annotation class JvmExpose

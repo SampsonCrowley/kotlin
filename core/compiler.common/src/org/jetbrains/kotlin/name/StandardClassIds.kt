@@ -157,6 +157,8 @@ object StandardClassIds {
         val JvmField = "JvmField".jvmId()
         val JvmDefault = "JvmDefault".jvmId()
         val JvmRepeatable = "JvmRepeatable".jvmId()
+        val JvmSynthetic = "JvmSynthetic".jvmId()
+        val JvmExpose = "JvmExpose".jvmId()
         val JvmRecord = "JvmRecord".jvmId()
 
         val RawTypeAnnotation = "RawType".internalIrId()

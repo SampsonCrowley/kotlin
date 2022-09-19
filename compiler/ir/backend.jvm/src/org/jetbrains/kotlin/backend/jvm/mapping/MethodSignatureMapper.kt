@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.load.kotlin.*
 import org.jetbrains.kotlin.metadata.deserialization.getExtensionOrNull
 import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
+import org.jetbrains.kotlin.name.JvmNames
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.resolve.jvm.JAVA_LANG_RECORD_FQ_NAME
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodGenericSignature
@@ -129,7 +130,8 @@ class MethodSignatureMapper(private val context: JvmBackendContext, private val 
             origin != JvmLoweredDeclarationOrigin.STATIC_INLINE_CLASS_CONSTRUCTOR &&
             origin != JvmLoweredDeclarationOrigin.SYNTHETIC_METHOD_FOR_PROPERTY_OR_TYPEALIAS_ANNOTATIONS &&
             origin != IrDeclarationOrigin.PROPERTY_DELEGATE &&
-            !isPublishedApi()
+            !isPublishedApi() &&
+            !hasJvmExpose()
         ) {
             return originalFunction.takeIf { it != this }
                 ?.safeAs<IrSimpleFunction>()
@@ -152,6 +154,9 @@ class MethodSignatureMapper(private val context: JvmBackendContext, private val 
 
     private fun IrSimpleFunction.isPublishedApi(): Boolean =
         propertyIfAccessor.annotations.hasAnnotation(StandardNames.FqNames.publishedApi)
+
+    private fun IrSimpleFunction.hasJvmExpose(): Boolean =
+        propertyIfAccessor.annotations.hasAnnotation(JvmNames.JVM_EXPOSE)
 
     fun mapReturnType(declaration: IrDeclaration, sw: JvmSignatureWriter? = null): Type {
         if (declaration !is IrFunction) {
@@ -314,7 +319,7 @@ class MethodSignatureMapper(private val context: JvmBackendContext, private val 
     }
 
     // Boxing is only necessary for 'remove(E): Boolean' of a MutableCollection<Int> implementation.
-    // Otherwise this method might clash with 'remove(I): E' defined in the java.util.List JDK interface (mapped to kotlin 'removeAt').
+    // Otherwise, this method might clash with 'remove(I): E' defined in the java.util.List JDK interface (mapped to kotlin 'removeAt').
     fun shouldBoxSingleValueParameterForSpecialCaseOfRemove(irFunction: IrFunction): Boolean {
         if (irFunction !is IrSimpleFunction) return false
         if (irFunction.name.asString() != "remove" && !irFunction.name.asString().startsWith("remove-")) return false
