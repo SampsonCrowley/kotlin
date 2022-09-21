@@ -22,6 +22,10 @@
 #include "FinalizerProcessor.hpp"
 #include "GCStatistics.hpp"
 
+#ifdef CUSTOM_ALLOCATOR
+#include "Heap.hpp"
+#endif
+
 using namespace kotlin;
 
 namespace {
@@ -154,6 +158,10 @@ bool gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     WaitForThreadsReadyToMark();
     gcHandle.threadsAreSuspended();
 
+#ifdef CUSTOM_ALLOCATOR
+    alloc::Heap::Instance().PrepareForGC();
+#endif
+
     auto& scheduler = gcScheduler_;
     scheduler.gcData().OnPerformFullGC();
 
@@ -176,10 +184,13 @@ bool gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     mm::ResumeThreads();
     gcHandle.threadsAreResumed();
 
+#ifndef CUSTOM_ALLOCATOR
     auto finalizerQueue = gc::Sweep<SweepTraits>(gcHandle, objectFactoryIterable);
-
+#else
+    SweepTraits::ObjectFactory::FinalizerQueue finalizerQueue;
+    alloc::Heap::Instance().Sweep();
+#endif
     kotlin::compactObjectPoolInMainThread();
-
     state_.finish(epoch);
     gcHandle.finalizersScheduled(finalizerQueue.size());
     gcHandle.finished();
