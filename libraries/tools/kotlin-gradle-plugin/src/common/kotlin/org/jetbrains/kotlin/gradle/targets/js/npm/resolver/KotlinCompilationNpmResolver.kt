@@ -14,7 +14,6 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.work.NormalizeLineEndings
@@ -69,9 +68,6 @@ internal class KotlinCompilationNpmResolver(
     val project get() = target.project
 
     val projectPath: String = project.path
-
-    @Transient
-    val objectFactory: ObjectFactory = project.objects
 
     @Transient
     val packageJsonTaskHolder: TaskProvider<KotlinPackageJsonTask>? =
@@ -209,7 +205,7 @@ internal class KotlinCompilationNpmResolver(
         private val internalDependencies = mutableSetOf<InternalDependency>()
         private val internalCompositeDependencies = mutableSetOf<CompositeDependency>()
         private val externalGradleDependencies = mutableSetOf<ExternalGradleDependency>()
-        private val externalNpmDependencies = mutableSetOf<NpmDependency>()
+        private val externalNpmDependencies = mutableSetOf<NpmDependencyDeclaration>()
         private val fileCollectionDependencies = mutableSetOf<FileCollectionExternalGradleDependency>()
 
         private val visitedDependencies = mutableSetOf<ResolvedDependency>()
@@ -221,7 +217,7 @@ internal class KotlinCompilationNpmResolver(
 
             configuration.allDependencies.forEach { dependency ->
                 when (dependency) {
-                    is NpmDependency -> externalNpmDependencies.add(dependency)
+                    is NpmDependency -> externalNpmDependencies.add(dependency.toDeclaration())
                     is FileCollectionDependency -> fileCollectionDependencies.add(
                         FileCollectionExternalGradleDependency(
                             dependency.files.files,
@@ -342,10 +338,9 @@ internal class KotlinCompilationNpmResolver(
                     it.artifact.file
                 )
             },
-            externalNpmDependencies.map { it.toDeclaration() },
+            externalNpmDependencies,
             fileCollectionDependencies,
             projectPath,
-            objectFactory,
         )
     }
 
@@ -381,8 +376,6 @@ internal class KotlinCompilationNpmResolver(
         var externalNpmDependencies: Collection<NpmDependencyDeclaration>,
         var fileCollectionDependencies: Collection<FileCollectionExternalGradleDependency>,
         val projectPath: String,
-        @Transient
-        val objectFactory: ObjectFactory,
     ) : Serializable {
         private val projectPackagesDir by lazy { compilationResolver.nodeJs_.projectPackagesDir }
         private val rootDir by lazy { compilationResolver.nodeJs_.rootProjectDir }
@@ -465,7 +458,6 @@ internal class KotlinCompilationNpmResolver(
             }
 
             return KotlinCompilationNpmResolution(
-                objectFactory,
                 compilationResolver.npmProject,
                 compositeDependencies,
                 importedExternalGradleDependencies,
