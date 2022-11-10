@@ -32,6 +32,7 @@ open class YarnPlugin : Plugin<Project> {
         }
 
         val yarnRootExtension = this.extensions.create(YarnRootExtension.YARN, YarnRootExtension::class.java, this)
+        NodeJsRootPlugin.apply(project)
         val nodeJs = this.kotlinNodeJsExtension
         val nodeJsTaskProviders = this.kotlinNodeJsTaskProvidersExtension
 

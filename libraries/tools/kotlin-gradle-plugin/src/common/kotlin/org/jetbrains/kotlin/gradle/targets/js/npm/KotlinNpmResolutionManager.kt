@@ -63,7 +63,7 @@ import java.io.File
  *
  * User can call [requireInstalled] to get resolution info.
  */
-class KotlinNpmResolutionManager internal constructor(
+open class KotlinNpmResolutionManager internal constructor(
     @Transient private val nodeJsSettings: NodeJsRootExtension?,
     val stateHolderProvider: Provider<KotlinNpmResolutionManagerStateHolder>,
     val rootProjectName: String,

@@ -113,7 +113,9 @@ open class NodeJsRootPlugin : Plugin<Project> {
                 it.parameters.rootProjectDir.set(project.projectDir)
             }
 
-        _kotlinNpmResolutionManager = KotlinNpmResolutionManager(
+        project.extensions.create(
+            NodeJsRootExtension.EXTENSION_NAME_2,
+            KotlinNpmResolutionManager::class.java,
             nodeJs,
             npmResolutionManagerStateHolder,
             project.name,
@@ -149,8 +151,7 @@ open class NodeJsRootPlugin : Plugin<Project> {
         val Project.kotlinNodeJsTaskProvidersExtension: NodeJsTaskProviders
             get() = extensions.getByName(NodeJsTaskProviders.EXTENSION_NAME).castIsolatedKotlinPluginClassLoaderAware()
 
-        var _kotlinNpmResolutionManager: KotlinNpmResolutionManager? = null
         val Project.kotlinNpmResolutionManager: KotlinNpmResolutionManager
-            get() = _kotlinNpmResolutionManager!!
+            get() = extensions.getByName(NodeJsRootExtension.EXTENSION_NAME_2).castIsolatedKotlinPluginClassLoaderAware()
     }
 }

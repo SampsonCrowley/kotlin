@@ -32,7 +32,6 @@ constructor(
     @Transient
     protected val nodeJs = project.rootProject.kotlinNodeJsExtension
 
-    @Internal
     private val versions = nodeJs.versions
 
     @get:Internal

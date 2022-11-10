@@ -90,6 +90,7 @@ constructor(
         ): TaskProvider<NodeJsExec> {
             val target = compilation.target
             val project = target.project
+            NodeJsRootPlugin.apply(project.rootProject)
             val nodeJs = project.rootProject.kotlinNodeJsExtension
             val nodeJsTaskProviders = project.rootProject.kotlinNodeJsTaskProvidersExtension
             val npmProject = compilation.npmProject
