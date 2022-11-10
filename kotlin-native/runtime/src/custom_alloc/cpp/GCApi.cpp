@@ -4,7 +4,6 @@
 
 #include "ConcurrentMarkAndSweep.hpp"
 #include "CustomLogging.hpp"
-#include "KAssert.h"
 #include "ObjectFactory.hpp"
 
 namespace kotlin {
@@ -15,14 +14,13 @@ bool TryResetMark(void* ptr) noexcept {
         kotlin::mm::ObjectFactory<kotlin::gc::ConcurrentMarkAndSweep>::Storage::Node;
     using NodeRef = typename
         kotlin::mm::ObjectFactory<kotlin::gc::ConcurrentMarkAndSweep>::NodeRef;
-    ptr = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr));
     Node& node = Node::FromData(ptr);
     NodeRef ref = NodeRef(node);
     auto& objectData = ref.ObjectData();
     if (!objectData.tryResetMark()) {
         auto* objHeader = ref.GetObjHeader();
         if (HasFinalizers(objHeader)) {
-            CustomWarning("FINALIZER IGNORED");
+            CustomAllocWarning("FINALIZER IGNORED");
         }
         return false;
     }

@@ -6,41 +6,28 @@
 #include <atomic>
 #include <cstring>
 
-#include "Alignment.hpp"
-#include "AtomicStack.hpp"
 #include "Cell.hpp"
+#include "CustomLogging.hpp"
 #include "Heap.hpp"
-#include "LargePage.hpp"
 #include "MediumPage.hpp"
+#include "Memory.h"
 #include "SmallPage.hpp"
 
 namespace kotlin {
 namespace alloc {
 
-struct ThreadData {
-    MediumPage* mediumPage = nullptr;
-    SmallPage* smallPages[SMALL_PAGE_MAX_BLOCK_SIZE+1];
-
-    void ReleasePages() noexcept {
-        mediumPage = nullptr;
-        memset(smallPages, 0, sizeof(smallPages));
-    }
-};
-
-ThreadData& GetThreadData() noexcept;
-
 class CustomAllocator {
 
 // # CustomAllocator
 //
-// This class is the entrypoint for making allocations. Each thread owns a
-// number of pages for different allocation sizes, but at most one for each
-// size class. It is currently keeping the owned pages in thread local data
-// defined in the struct alloc::ThreadData, but ideally these should just be
-// fields of each CustomAllocator, once there is one CustomAllocator instance
-// per thread. When allocating, the CustomAllocator will first try to allocate
-// in one of its owned pages. If this fails, it will request a new page for
-// that size class.
+// The primary responsibility of this class is to delegate each requested
+// allocation to pages of the appropriate type, based on allocation size. To do
+// this, it requests pages from the shared allocation space (Heap) and stores
+// pages for later allocations. Each thread thus owns a number of pages for
+// different allocation sizes, but at most one for each size class. When
+// allocating, the CustomAllocator will first try to allocate in one of its
+// owned pages. If this fails, it will request a new page for that size class
+// from a shared Heap object.
 
 // # Heap
 //
@@ -107,31 +94,44 @@ class CustomAllocator {
 // LargePages. As a consequence, they are only swept by the GC thread.
 
 public:
-    static CustomAllocator& Instance() noexcept { return instance_; }
+    CustomAllocator(Heap& heap) noexcept : heap_(heap) {
+        CustomAllocInfo("CustomAllocator::CustomAllocator(heap)");
+    }
 
-    CustomAllocator(Heap& heap) noexcept : heap_(heap) {}
+    ObjHeader* CreateObject(const TypeInfo* typeInfo) noexcept;
 
-    CustomAllocator() noexcept : heap_(Heap::Instance()) {}
+    ArrayHeader* CreateArray(const TypeInfo* typeInfo, uint32_t count) noexcept;
 
+    void PrepareForGC() noexcept {
+        CustomAllocInfo("CustomAllocator@%p::PrepareForGC()", this);
+        mediumPage = nullptr;
+        memset(smallPages, 0, sizeof(smallPages));
+    }
+
+    static void Free(void* ptr) noexcept {
+        CustomAllocWarning("CustomAllocator::Free not supported");
+    }
+
+private:
     // Allocates a block of `size` bytes. This is the only method in this
     // module that measures size in bytes rather than number of Cells.  Returns
     // null only in the case that malloc returns null.
-    void* Alloc(size_t size) noexcept {
-        uint32_t cellCount = (size + sizeof(Cell) - 1) / sizeof(Cell);
+    void* Alloc(uint64_t size) noexcept {
+        CustomAllocDebug("CustomAllocator@%p::Alloc(%" PRIu64 ")", this, size);
+        uint64_t cellCount = (size + sizeof(Cell) - 1) / sizeof(Cell);
         void* ptr = Allocate(cellCount);
         memset(ptr, 0, size);
         return ptr;
     }
 
-private:
-    static CustomAllocator instance_;
-
-    void* Allocate(uint32_t cellCount) noexcept;
-    void* AllocateInLargePage(uint32_t cellCount) noexcept;
+    void* Allocate(uint64_t cellCount) noexcept;
+    void* AllocateInLargePage(uint64_t cellCount) noexcept;
     void* AllocateInMediumPage(uint32_t cellCount) noexcept;
     void* AllocateInSmallPage(uint32_t cellCount) noexcept;
 
     Heap& heap_;
+    MediumPage* mediumPage = nullptr;
+    SmallPage* smallPages[SMALL_PAGE_MAX_BLOCK_SIZE+1];
 };
 
 } // namespace alloc

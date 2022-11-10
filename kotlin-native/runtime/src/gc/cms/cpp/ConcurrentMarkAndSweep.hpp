@@ -21,6 +21,11 @@
 #include "std_support/Memory.hpp"
 #include "GCStatistics.hpp"
 
+#ifdef CUSTOM_ALLOCATOR
+#include "CustomAllocator.hpp"
+#include "Heap.hpp"
+#endif
+
 namespace kotlin {
 namespace gc {
 
@@ -68,7 +73,12 @@ public:
     class ThreadData : private Pinned {
     public:
         using ObjectData = ConcurrentMarkAndSweep::ObjectData;
+
+#ifndef CUSTOM_ALLOCATOR
         using Allocator = AllocatorWithGC<Allocator, ThreadData>;
+#else
+        using Allocator = AllocatorWithGC<alloc::CustomAllocator, ThreadData>;
+#endif
 
         explicit ThreadData(ConcurrentMarkAndSweep& gc, mm::ThreadData& threadData, GCSchedulerThreadData& gcScheduler) noexcept :
             gc_(gc), threadData_(threadData), gcScheduler_(gcScheduler) {}
@@ -84,7 +94,14 @@ public:
 
         void OnSuspendForGC() noexcept;
 
+#ifndef CUSTOM_ALLOCATOR
         Allocator CreateAllocator() noexcept { return Allocator(gc::Allocator(), *this); }
+#else
+        Allocator CreateAllocator() noexcept { 
+            RuntimeLogInfo({"ca"}, "ThreadData::CreateAllocator()");
+            return Allocator(alloc::CustomAllocator(gc_.heap_), *this); 
+        }
+#endif
 
     private:
         friend ConcurrentMarkAndSweep;
@@ -107,11 +124,21 @@ public:
     void WaitForThreadsReadyToMark() noexcept;
     void CollectRootSetAndStartMarking(GCHandle gcHandle) noexcept;
 
+#ifdef CUSTOM_ALLOCATOR
+    alloc::Heap& heap() noexcept {
+        return heap_;
+    }
+#endif
+
 private:
     // Returns `true` if GC has happened, and `false` if not (because someone else has suspended the threads).
     bool PerformFullGC(int64_t epoch) noexcept;
 
+#ifndef CUSTOM_ALLOCATOR
     mm::ObjectFactory<ConcurrentMarkAndSweep>& objectFactory_;
+#else
+    alloc::Heap heap_;
+#endif
     GCScheduler& gcScheduler_;
 
     GCStateHolder state_;
@@ -120,6 +147,7 @@ private:
 
     MarkQueue markQueue_;
     MarkingBehavior markingBehavior_;
+
 };
 
 namespace internal {

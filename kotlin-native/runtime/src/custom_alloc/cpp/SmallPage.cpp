@@ -13,7 +13,7 @@ namespace kotlin {
 namespace alloc {
 
 SmallPage::SmallPage(uint32_t blockSize) noexcept : blockSize_(blockSize) {
-    CustomInfo("SmallPage(%p)::SmallPage(%u)", this, blockSize);
+    CustomAllocInfo("SmallPage(%p)::SmallPage(%u)", this, blockSize);
     nextFree_ = cells_;
     SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);
     for (SmallCell* cell = cells_; cell < end; cell = cell->nextFree) {
@@ -27,12 +27,12 @@ SmallCell* SmallPage::TryAllocate() noexcept {
     }
     SmallCell* freeBlock = nextFree_;
     nextFree_ = freeBlock->nextFree;
-    CustomDebug("SmallPage(%p){%u}::TryAllocate() = %p", this, blockSize_, freeBlock);
+    CustomAllocDebug("SmallPage(%p){%u}::TryAllocate() = %p", this, blockSize_, freeBlock);
     return freeBlock;
 }
 
 bool SmallPage::Sweep() noexcept {
-    CustomInfo("SmallPage(%p)::Sweep()", this);
+    CustomAllocInfo("SmallPage(%p)::Sweep()", this);
     // `end` is after the last legal allocation of a block, but does not
     // necessarily match an actual block starting point.
     SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);

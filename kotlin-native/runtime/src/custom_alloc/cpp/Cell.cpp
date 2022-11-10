@@ -11,14 +11,14 @@ namespace kotlin {
 namespace alloc {
 
 Cell::Cell(uint32_t size) noexcept : isAllocated_(false), size_(size) {
-    CustomDebug("Cell@%p::Cell(%u)", this, size);
+    CustomAllocDebug("Cell@%p::Cell(%u)", this, size);
 }
 
 Cell* Cell::TryAllocate(uint32_t cellsNeeded) noexcept {
-    CustomDebug("Cell@%p{ allocated = %d, size = %u }::TryAllocate(%u)",
+    CustomAllocDebug("Cell@%p{ allocated = %d, size = %u }::TryAllocate(%u)",
             this, isAllocated_, size_, cellsNeeded);
     if (isAllocated_ || cellsNeeded > size_) {
-        CustomDebug("Failed to allocate in Cell");
+        CustomAllocDebug("Failed to allocate in Cell");
         return nullptr;
     }
     uint32_t oldSize = size_;
@@ -33,7 +33,7 @@ Cell* Cell::TryAllocate(uint32_t cellsNeeded) noexcept {
 }
 
 void Cell::Deallocate() noexcept {
-    CustomDebug("Cell@%p{ allocated = %d, size = %u }::Deallocate()",
+    CustomAllocDebug("Cell@%p{ allocated = %d, size = %u }::Deallocate()",
             this, isAllocated_, size_);
     RuntimeAssert(isAllocated_, "Cell is not currently allocated");
     isAllocated_ = false;

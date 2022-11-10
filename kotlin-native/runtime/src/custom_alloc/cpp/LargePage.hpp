@@ -18,7 +18,7 @@ namespace alloc {
 class alignas(8) LargePage {
 public:
     static LargePage* Create(uint64_t cellCount) noexcept {
-        CustomInfo("LargePage::Create(%" PRIu64 ")", cellCount);
+        CustomAllocInfo("LargePage::Create(%" PRIu64 ")", cellCount);
         RuntimeAssert(cellCount > LARGE_PAGE_SIZE_THRESHOLD, "blockSize too small for large page");
         uint64_t size = sizeof(LargePage) + cellCount * sizeof(uint64_t);
         return new (alloc(size)) LargePage();
@@ -27,7 +27,7 @@ public:
     void* Data() noexcept { return this + 1; }
 
     bool Sweep() noexcept {
-        CustomDebug("LargePage@%p::Sweep()", this);
+        CustomAllocDebug("LargePage@%p::Sweep()", this);
         return TryResetMark(Data());
     }
 

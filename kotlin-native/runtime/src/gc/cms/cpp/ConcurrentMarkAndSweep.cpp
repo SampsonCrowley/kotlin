@@ -98,7 +98,9 @@ NO_EXTERNAL_CALLS_CHECK void gc::ConcurrentMarkAndSweep::ThreadData::OnSuspendFo
 
 gc::ConcurrentMarkAndSweep::ConcurrentMarkAndSweep(
         mm::ObjectFactory<ConcurrentMarkAndSweep>& objectFactory, GCScheduler& gcScheduler) noexcept :
+#ifndef CUSTOM_ALLOCATOR
     objectFactory_(objectFactory),
+#endif
     gcScheduler_(gcScheduler),
     finalizerProcessor_(std_support::make_unique<FinalizerProcessor>([this](int64_t epoch) {
         state_.finalized(epoch);
@@ -159,7 +161,7 @@ bool gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     gcHandle.threadsAreSuspended();
 
 #ifdef CUSTOM_ALLOCATOR
-    alloc::Heap::Instance().PrepareForGC();
+    heap_.PrepareForGC();
 #endif
 
     auto& scheduler = gcScheduler_;
@@ -179,16 +181,16 @@ bool gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
 
     gc::SweepExtraObjects<SweepTraits>(gcHandle, extraObjectDataFactory);
 
+#ifndef CUSTOM_ALLOCATOR
     auto objectFactoryIterable = objectFactory_.LockForIter();
-
     mm::ResumeThreads();
     gcHandle.threadsAreResumed();
-
-#ifndef CUSTOM_ALLOCATOR
     auto finalizerQueue = gc::Sweep<SweepTraits>(gcHandle, objectFactoryIterable);
 #else
+    mm::ResumeThreads();
+    gcHandle.threadsAreResumed();
     SweepTraits::ObjectFactory::FinalizerQueue finalizerQueue;
-    alloc::Heap::Instance().Sweep();
+    heap_.Sweep();
 #endif
     kotlin::compactObjectPoolInMainThread();
     state_.finish(epoch);

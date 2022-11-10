@@ -1,6 +1,5 @@
 // Copyright 2022 Google LLC
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "SmallPage.hpp"
 

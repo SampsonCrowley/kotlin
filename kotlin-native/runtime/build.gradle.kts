@@ -178,11 +178,6 @@ bitcode {
             headersDirs.from(files("src/gc/common/cpp", "src/main/cpp"))
         }
 
-        module("experimental_memory_manager_custom", file("src/mm")) {
-            headersDirs.from(files("src/gc/common/cpp", "src/main/cpp"))
-            compilerArgs.add("-DCUSTOM_ALLOCATOR")
-        }
-
         module("common_gc", file("src/gc/common")) {
             headersDirs.from(files("src/mm/cpp", "src/main/cpp"))
         }

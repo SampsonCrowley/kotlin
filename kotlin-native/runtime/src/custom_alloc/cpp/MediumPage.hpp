@@ -7,10 +7,8 @@
 
 #include "AtomicStack.hpp"
 #include "Cell.hpp"
-#include "ConcurrentMarkAndSweep.hpp"
 #include "GCApi.hpp"
 #include "KAssert.h"
-#include "ObjectFactory.hpp"
 
 namespace kotlin {
 namespace alloc {
@@ -49,7 +47,7 @@ public:
     }
 
     static MediumPage* Create(uint32_t cellCount) noexcept {
-        CustomInfo("MediumPage::Create(%u)", cellCount);
+        CustomAllocInfo("MediumPage::Create(%u)", cellCount);
         RuntimeAssert(cellCount <= MEDIUM_PAGE_CELL_COUNT, "cellCount is too large for medium page");
         return new (alloc(MEDIUM_PAGE_SIZE)) MediumPage(cellCount);
     }

@@ -289,21 +289,18 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
             }
             MemoryModel.EXPERIMENTAL -> {
                 add("common_gc.bc")
+                add("experimental_memory_manager.bc")
                 when (gc) {
                     GC.SAME_THREAD_MARK_AND_SWEEP -> {
-                        add("experimental_memory_manager.bc")
                         add("same_thread_ms_gc.bc")
                     }
                     GC.NOOP -> {
-                        add("experimental_memory_manager.bc")
                         add("noop_gc.bc")
                     }
                     GC.CONCURRENT_MARK_AND_SWEEP -> {
                         if (allocationMode == AllocationMode.CUSTOM) {
-                            add("experimental_memory_manager_custom.bc")
                             add("concurrent_ms_gc_custom.bc")
                         } else {
-                            add("experimental_memory_manager.bc")
                             add("concurrent_ms_gc.bc")
                         }
                     }

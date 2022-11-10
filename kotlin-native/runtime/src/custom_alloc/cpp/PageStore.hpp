@@ -22,7 +22,7 @@ public:
         T* page;
         while ((page = from.Pop())) {
             if (!page->Sweep()) {
-                CustomInfo("SweepAndFreeEmpty free(%p)", page);
+                CustomAllocInfo("SweepAndFreeEmpty free(%p)", page);
                 free(page);
             } else {
                 to.Push(page);
@@ -48,7 +48,7 @@ public:
         return NewPage(cellCount);
     }
 
-    T* NewPage(uint32_t cellCount) noexcept {
+    T* NewPage(uint64_t cellCount) noexcept {
         T* page = T::Create(cellCount);
         used_.Push(page);
         return page;

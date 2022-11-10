@@ -6,7 +6,6 @@
 #include <atomic>
 #include <cstring>
 
-#include "AtomicStack.hpp"
 #include "LargePage.hpp"
 #include "MediumPage.hpp"
 #include "PageStore.hpp"
@@ -17,8 +16,6 @@ namespace alloc {
 
 class Heap {
 public:
-    static Heap& Instance() noexcept { return instance_; }
-
     // Called once by the GC thread after all mutators have been suspended
     void PrepareForGC() noexcept;
 
@@ -29,11 +26,9 @@ public:
 
     SmallPage* GetSmallPage(uint32_t cellCount) noexcept;
     MediumPage* GetMediumPage(uint32_t cellCount) noexcept;
-    LargePage* GetLargePage(uint32_t cellCount) noexcept;
+    LargePage* GetLargePage(uint64_t cellCount) noexcept;
 
 private:
-    static Heap instance_;
-
     PageStore<SmallPage> smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE+1];
     PageStore<MediumPage> mediumPages_;
     PageStore<LargePage> largePages_;

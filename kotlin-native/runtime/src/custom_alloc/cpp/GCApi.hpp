@@ -8,8 +8,6 @@
 #include <limits>
 #include <stdlib.h>
 
-#include "Porting.h"
-
 namespace kotlin {
 namespace alloc {
 

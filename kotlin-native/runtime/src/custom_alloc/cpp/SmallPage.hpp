@@ -28,7 +28,7 @@ public:
     SmallPage(uint32_t blockSize) noexcept;
 
     static SmallPage* Create(uint32_t blockSize) noexcept {
-        CustomInfo("SmallPage::Create(%u)", blockSize);
+        CustomAllocInfo("SmallPage::Create(%u)", blockSize);
         RuntimeAssert(blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE, "blockSize too large for small page");
         return new (alloc(SMALL_PAGE_SIZE)) SmallPage(blockSize);
     }

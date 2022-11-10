@@ -17,12 +17,12 @@ public:
         T* elm = stack_.load(std::memory_order_acquire);
         while (elm && !stack_.compare_exchange_weak(elm, elm->next_,
                     std::memory_order_acq_rel));
-        CustomDebug("AtomicStack(%p)::Pop() = %p", this, elm);
+        CustomAllocDebug("AtomicStack(%p)::Pop() = %p", this, elm);
         return elm;
     }
 
     void Push(T* elm) noexcept {
-        CustomDebug("AtomicStack(%p)::Push(%p)", this, elm);
+        CustomAllocDebug("AtomicStack(%p)::Push(%p)", this, elm);
         T* head = nullptr;
         do {
             elm->next_ = head;

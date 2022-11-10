@@ -37,25 +37,28 @@ public:
     Impl(GC& gc, mm::ThreadData& threadData) noexcept :
         gcScheduler_(gc.impl_->gcScheduler().NewThreadData()),
         gc_(gc.impl_->gc(), threadData, gcScheduler_),
-#ifdef CUSTOM_ALLOCATOR
-        alloc_(alloc::CustomAllocator()),
-#endif
+#ifndef CUSTOM_ALLOCATOR
         objectFactoryThreadQueue_(gc.impl_->objectFactory(), gc_.CreateAllocator()) {}
+#else
+        alloc_(gc.impl_->gc().heap()) {}
+#endif
 
     GCSchedulerThreadData& gcScheduler() noexcept { return gcScheduler_; }
     GCImpl::ThreadData& gc() noexcept { return gc_; }
 #ifdef CUSTOM_ALLOCATOR
     alloc::CustomAllocator& alloc() noexcept { return alloc_; }
-#endif
+#else
     mm::ObjectFactory<GCImpl>::ThreadQueue& objectFactoryThreadQueue() noexcept { return objectFactoryThreadQueue_; }
+#endif
 
 private:
     GCSchedulerThreadData gcScheduler_;
     GCImpl::ThreadData gc_;
 #ifdef CUSTOM_ALLOCATOR
     alloc::CustomAllocator alloc_;
-#endif
+#else
     mm::ObjectFactory<GCImpl>::ThreadQueue objectFactoryThreadQueue_;
+#endif
 };
 
 } // namespace gc

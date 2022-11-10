@@ -11,7 +11,7 @@ namespace kotlin {
 namespace alloc {
 
 Cell* MediumPage::TryAllocate(uint32_t cellsNeeded) noexcept {
-    CustomDebug("MediumPage@%p::TryAllocate(%u)", this, cellsNeeded);
+    CustomAllocDebug("MediumPage@%p::TryAllocate(%u)", this, cellsNeeded);
     RuntimeAssert(cellsNeeded > 0, "Can only allocate a positive number of cells");
     Cell* block = curBlock_->TryAllocate(cellsNeeded);
     if (block) return block;
@@ -20,7 +20,7 @@ Cell* MediumPage::TryAllocate(uint32_t cellsNeeded) noexcept {
 }
 
 bool MediumPage::Sweep() noexcept {
-    CustomDebug("MediumPage@%p::Sweep()", this);
+    CustomAllocDebug("MediumPage@%p::Sweep()", this);
     Cell* end = cells_ + MEDIUM_PAGE_CELL_COUNT;
     bool alive = false;
     for (Cell& block : *this) {
@@ -45,7 +45,7 @@ bool MediumPage::Sweep() noexcept {
 }
 
 void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
-    CustomDebug("MediumPage@%p::UpdateCurBlock(%u)", this, cellsNeeded);
+    CustomAllocDebug("MediumPage@%p::UpdateCurBlock(%u)", this, cellsNeeded);
     if (curBlock_ == &kZeroBlock_) curBlock_ = cells_;
     Cell* maxBlock = &kZeroBlock_;
     for (Cell& block : *this) {
@@ -57,7 +57,7 @@ void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
             }
         }
     }
-    CustomDebug("MediumPage@%p::UpdateCurBlock: starting from beginning", this);
+    CustomAllocDebug("MediumPage@%p::UpdateCurBlock: starting from beginning", this);
     for (Cell& block : *this) {
         if (!block.isAllocated_ && block.size_ > maxBlock->size_) {
             maxBlock = &block;

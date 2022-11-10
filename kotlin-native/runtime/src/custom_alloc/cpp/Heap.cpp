@@ -9,21 +9,19 @@
 
 #include "CustomAllocator.hpp"
 #include "CustomLogging.hpp"
-#include "KAssert.h"
 #include "LargePage.hpp"
 #include "MediumPage.hpp"
 #include "SmallPage.hpp"
-#include "ThreadData.hpp"
 #include "ThreadRegistry.hpp"
+#include "GCImpl.hpp"
 
 namespace kotlin {
 namespace alloc {
-Heap Heap::instance_ [[clang::no_destroy]];
 
 void Heap::PrepareForGC() noexcept {
-    CustomDebug("Heap::PrepareForGC()");
+    CustomAllocDebug("Heap::PrepareForGC()");
     for (auto& thread : kotlin::mm::ThreadRegistry::Instance().LockForIter()) {
-        thread.alloc().ReleasePages();
+        thread.gc().impl().alloc().PrepareForGC();
     }
 
     mediumPages_.PrepareForGC();
@@ -34,7 +32,7 @@ void Heap::PrepareForGC() noexcept {
 }
 
 void Heap::Sweep() noexcept {
-    CustomDebug("Heap::Sweep()");
+    CustomAllocDebug("Heap::Sweep()");
     for (int blockSize = 0 ; blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE ; ++blockSize) {
         smallPages_[blockSize].Sweep();
     }
@@ -43,17 +41,17 @@ void Heap::Sweep() noexcept {
 }
 
 MediumPage* Heap::GetMediumPage(uint32_t cellCount) noexcept {
-    CustomDebug("Heap::GetMediumPage()");
+    CustomAllocDebug("Heap::GetMediumPage()");
     return mediumPages_.GetPage(cellCount);
 }
 
 SmallPage* Heap::GetSmallPage(uint32_t cellCount) noexcept {
-    CustomDebug("Heap::GetSmallPage()");
+    CustomAllocDebug("Heap::GetSmallPage()");
     return smallPages_[cellCount].GetPage(cellCount);
 }
 
-LargePage* Heap::GetLargePage(uint32_t cellCount) noexcept {
-    CustomInfo("CustomAllocator::AllocateInLargePage(%u)", cellCount);
+LargePage* Heap::GetLargePage(uint64_t cellCount) noexcept {
+    CustomAllocInfo("CustomAllocator::AllocateInLargePage(%" PRIu64 ")", cellCount);
     return largePages_.NewPage(cellCount);
 }
 } // namespace alloc
