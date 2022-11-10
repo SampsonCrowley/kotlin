@@ -2,6 +2,7 @@ package org.jetbrains.kotlin.gradle.targets.js.nodejs
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
@@ -11,7 +12,6 @@ import org.jetbrains.kotlin.gradle.logging.kotlinInfo
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.targets.js.calculateDirHash
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsExtension
-import org.jetbrains.kotlin.gradle.utils.ArchiveOperationsCompat
 import org.jetbrains.kotlin.statistics.metrics.NumericalMetrics
 import java.io.File
 import java.net.URI
@@ -24,15 +24,15 @@ abstract class NodeJsSetupTask : DefaultTask() {
 
     private val shouldDownload = settings.download
 
-    private val archiveOperations = ArchiveOperationsCompat(project)
+    @get:Inject
+    abstract internal val archiveOperations: ArchiveOperations
 
     @get:Inject
     internal open val fileHasher: FileHasher
         get() = error("Should be injected")
 
     @get:Inject
-    internal open val fs: FileSystemOperations
-        get() = error("Should be injected")
+    abstract internal val fs: FileSystemOperations
 
     val ivyDependency: String
         @Input get() = env.ivyDependency

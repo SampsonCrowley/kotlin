@@ -11,8 +11,6 @@ import org.jetbrains.kotlin.gradle.targets.js.JS
 import org.jetbrains.kotlin.gradle.targets.js.JS_MAP
 import org.jetbrains.kotlin.gradle.targets.js.META_JS
 import org.jetbrains.kotlin.gradle.targets.js.ir.KLIB_TYPE
-import org.jetbrains.kotlin.gradle.utils.ArchiveOperationsCompat
-import org.jetbrains.kotlin.gradle.utils.FileSystemOperationsCompat
 import java.io.File
 
 /**

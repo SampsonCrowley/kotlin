@@ -7,8 +7,6 @@ package org.jetbrains.kotlin.gradle.targets.js.npm
 
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
-import org.jetbrains.kotlin.gradle.utils.ArchiveOperationsCompat
-import org.jetbrains.kotlin.gradle.utils.FileSystemOperationsCompat
 import java.io.File
 import javax.inject.Inject
 
