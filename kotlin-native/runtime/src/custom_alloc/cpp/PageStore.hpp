@@ -16,6 +16,8 @@ public:
     void PrepareForGC() noexcept {
         unswept_.NonatomicTransferAllFrom(ready_);
         unswept_.NonatomicTransferAllFrom(used_);
+        T* page;
+        while ((page = empty_.Pop())) free(page);
     }
 
     T* SweepAndFreeEmpty(AtomicStack<T> &from, AtomicStack<T> &to) noexcept {
@@ -23,7 +25,7 @@ public:
         while ((page = from.Pop())) {
             if (!page->Sweep()) {
                 CustomAllocInfo("SweepAndFreeEmpty free(%p)", page);
-                free(page);
+                empty_.Push(page);
             } else {
                 to.Push(page);
                 return page;
@@ -45,6 +47,10 @@ public:
             used_.Push(page);
             return page;
         }
+        if ((page = empty_.Pop())) {
+            used_.Push(page);
+            return page;
+        }
         return NewPage(cellCount);
     }
 
@@ -55,6 +61,7 @@ public:
     }
 
 private:
+    AtomicStack<T> empty_;
     AtomicStack<T> ready_;
     AtomicStack<T> used_;
     AtomicStack<T> unswept_;

@@ -8,9 +8,9 @@
 
 namespace kotlin {
 
-void* allocateInObjectPool(size_t size) noexcept {
+void* allocateInObjectPool(size_t size) noexcept { 
     CustomAllocWarning("static allocateInObjectPool(%zu) not supported", size);
-    return nullptr;
+    return nullptr; 
 }
 
 void freeInObjectPool(void* ptr) noexcept {
