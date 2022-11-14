@@ -7,12 +7,16 @@ package org.jetbrains.kotlin.gradle.targets.js.npm
 
 import org.gradle.api.Incubating
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinRootNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.*
@@ -63,7 +67,7 @@ import java.io.File
  *
  * User can call [requireInstalled] to get resolution info.
  */
-open class KotlinNpmResolutionManager internal constructor(
+abstract class KotlinNpmResolutionManager internal constructor(
     @Transient private val nodeJsSettings: NodeJsRootExtension?,
     val stateHolderProvider: Provider<KotlinNpmResolutionManagerStateHolder>,
     val rootProjectName: String,
@@ -79,7 +83,20 @@ open class KotlinNpmResolutionManager internal constructor(
     val npmEnvironment_: Provider<NpmEnvironment>?,
     @Transient
     val yarnResolutions_: Provider<List<YarnResolution>>?
-) {
+) : BuildService<BuildServiceParameters.None> {
+
+    internal interface Parameters : BuildServiceParameters {
+        val projectResolvers: MapProperty<String, KotlinProjectNpmResolver>
+        val packageManager: Property<NpmApi>
+        val yarnEnvironment: Property<YarnEnv>
+        val npmEnvironment: Property<NpmEnvironment>
+        val yarnResolutions: ListProperty<YarnResolution>
+        val taskRequirements: Property<TasksRequirements>
+
+        // pulled up from compilation resolver since it was failing with ClassNotFoundException on deserialization, see KT-49061
+        val packageJsonHandlers: MapProperty<String, List<PackageJson.() -> Unit>>
+    }
+
     val resolver = KotlinRootNpmResolver(
         nodeJsSettings,
         rootProjectName,
