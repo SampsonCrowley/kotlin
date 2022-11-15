@@ -11,17 +11,21 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingDeclarationSymbol
+import org.jetbrains.kotlin.fir.builder.FirAnnotationContainerBuilder
 import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
 import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.origin
 import org.jetbrains.kotlin.fir.declarations.utils.isCompanion
+import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
+import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.moduleData
+import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.scopes.*
@@ -36,8 +40,10 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.konan.isNative
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIALIZER_FACTORY_INTERFACE_NAME
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationDependenciesClassIds
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationPackages
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializersClassIds.generatedSerializerId
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializersClassIds.kSerializerId
@@ -54,6 +60,11 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
             SerialEntityNames.MARKED_ENUM_SERIALIZER_FACTORY_FUNC_NAME
         ).isNotEmpty()
         hasFactory && hasMarkedFactory
+    }
+
+
+    private val jsExportIgnore by lazy {
+        session.symbolProvider.getClassLikeSymbolByClassId(SerializationDependenciesClassIds.jsExportIgnore)
     }
 
     override fun getNestedClassifiersNames(classSymbol: FirClassSymbol<*>): Set<Name> {
@@ -220,6 +231,8 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
                     isNullable = false
                 )
             }
+
+            excludeFromExport()
         }
         return f.symbol
     }
@@ -348,10 +361,13 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
             name = SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT
             symbol = FirRegularClassSymbol(classId)
             superTypeRefs += session.builtinTypes.anyType
+
             if (with(session) { owner.companionNeedsSerializerFactory }) {
                 val serializerFactoryClassId = ClassId(SerializationPackages.internalPackageFqName, SERIALIZER_FACTORY_INTERFACE_NAME)
                 superTypeRefs += serializerFactoryClassId.constructClassLikeType(emptyArray(), false).toFirResolvedTypeRef()
             }
+
+            excludeFromExport()
         }
         return regularClass.symbol
     }
@@ -379,4 +395,15 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
             return true
         }
 
+    private fun FirAnnotationContainerBuilder.excludeFromExport() {
+        val jsExportIgnoreAnnotation = jsExportIgnore as? FirRegularClassSymbol ?: return
+        val jsExportIgnoreConstructor = jsExportIgnoreAnnotation.declarationSymbols.firstIsInstanceOrNull<FirConstructorSymbol>() ?: return
+
+        annotations.add(buildAnnotationCall {
+            calleeReference = buildResolvedNamedReference {
+                name = jsExportIgnoreAnnotation.name
+                resolvedSymbol = jsExportIgnoreConstructor
+            }
+        })
+    }
 }

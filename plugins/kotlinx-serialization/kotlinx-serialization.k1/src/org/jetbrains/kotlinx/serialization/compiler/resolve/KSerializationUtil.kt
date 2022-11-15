@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -273,6 +274,11 @@ fun ClassDescriptor.needSerializerFactory(): Boolean {
     if (serializableClass.isSealedSerializableInterface) return true
     if (serializableClass.declaredTypeParameters.isEmpty()) return false
     return true
+}
+
+fun DeclarationDescriptor.jsExportIgnore(): AnnotationDescriptor? {
+    val jsExportIgnore = getJsExportIgnore() ?: return null
+    return AnnotationDescriptorImpl(jsExportIgnore.defaultType, mapOf(), jsExportIgnore.source)
 }
 
 fun getSerializableClassDescriptorBySerializer(serializerDescriptor: ClassDescriptor): ClassDescriptor? {

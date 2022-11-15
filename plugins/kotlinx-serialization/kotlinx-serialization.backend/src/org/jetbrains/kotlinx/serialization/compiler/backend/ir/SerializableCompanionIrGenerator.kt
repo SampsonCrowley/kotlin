@@ -6,6 +6,7 @@
 package org.jetbrains.kotlinx.serialization.compiler.backend.ir
 
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
@@ -13,6 +14,7 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
@@ -22,9 +24,11 @@ import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginContext
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationDependenciesClassIds
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationPackages
 
 class SerializableCompanionIrGenerator(
@@ -171,7 +175,28 @@ class SerializableCompanionIrGenerator(
             type = compilerContext.irBuiltIns.arrayClass.typeWith(kSerializerStarType)
             origin = SERIALIZATION_PLUGIN_ORIGIN
         }
-        return f
+        return f.apply { excludeFromExport() }
+    }
+
+    private fun IrDeclaration.excludeFromExport() {
+        val pkg = SerializationDependenciesClassIds.jsExportIgnore.packageFqName
+        val jsExportName = SerializationDependenciesClassIds.jsExportIgnore.parentClassId!!.shortClassName
+        val jsExportIgnoreFqName = SerializationDependenciesClassIds.jsExportIgnore.asSingleFqName()
+
+        val jsExport = compilerContext.getClassFromRuntimeOrNull(jsExportName.identifier, pkg) ?: return
+        val jsExportIgnore = jsExport.owner.findDeclaration<IrClass> { it.fqNameWhenAvailable == jsExportIgnoreFqName } ?: return
+
+        val jsExportIgnoreCtor = jsExportIgnore.primaryConstructor ?: return
+
+        annotations += IrConstructorCallImpl(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            jsExportIgnore.defaultType,
+            jsExportIgnoreCtor.symbol,
+            jsExportIgnore.typeParameters.size,
+            jsExportIgnoreCtor.typeParameters.size,
+            jsExportIgnoreCtor.valueParameters.size,
+        )
     }
 
     private fun generateSerializerFactoryIfNeeded(getterDescriptor: IrSimpleFunction) {

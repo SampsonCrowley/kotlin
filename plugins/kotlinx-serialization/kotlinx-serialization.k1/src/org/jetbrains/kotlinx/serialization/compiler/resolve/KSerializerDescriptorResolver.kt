@@ -7,10 +7,7 @@ package org.jetbrains.kotlinx.serialization.compiler.resolve
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.annotations.createDeprecatedAnnotation
+import org.jetbrains.kotlin.descriptors.annotations.*
 import org.jetbrains.kotlin.descriptors.impl.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -433,7 +430,7 @@ object KSerializerDescriptorResolver {
     private fun createSerializerFactoryVarargDescriptor(thisClass: ClassDescriptor): SimpleFunctionDescriptor {
         val f = SimpleFunctionDescriptorImpl.create(
             thisClass,
-            Annotations.EMPTY,
+            Annotations.create(listOfNotNull(thisClass.jsExportIgnore())),
             SerialEntityNames.SERIALIZER_PROVIDER_NAME,
             CallableMemberDescriptor.Kind.SYNTHESIZED,
             thisClass.source
@@ -482,7 +479,7 @@ object KSerializerDescriptorResolver {
     ): SimpleFunctionDescriptor {
         val f = SimpleFunctionDescriptorImpl.create(
             thisClass,
-            Annotations.EMPTY,
+            Annotations.create(listOfNotNull(thisClass.jsExportIgnore())),
             SerialEntityNames.SERIALIZER_PROVIDER_NAME,
             CallableMemberDescriptor.Kind.SYNTHESIZED,
             thisClass.source
@@ -499,7 +496,6 @@ object KSerializerDescriptorResolver {
         f.initialize(null, thisClass.thisAsReceiverParameter, emptyList(), typeArgs, args, serialReturnType, Modality.FINAL, DescriptorVisibilities.PUBLIC)
         return f
     }
-
 
     private fun KotlinType.makeNullableIfNotPrimitive() =
         if (KotlinBuiltIns.isPrimitiveType(this)) this

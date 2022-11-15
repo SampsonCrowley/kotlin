@@ -193,3 +193,4 @@ val ConeKotlinType.isTypeParameter: Boolean
 context(FirSession)
 val ConeKotlinType.isGeneratedSerializableObject: Boolean
     get() = toRegularClassSymbol(this@FirSession)?.let { it.classKind.isObject && it.hasSerializableOrMetaAnnotationWithoutArgs } ?: false
+
