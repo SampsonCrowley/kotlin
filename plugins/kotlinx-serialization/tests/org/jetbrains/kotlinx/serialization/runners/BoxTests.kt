@@ -43,12 +43,3 @@ open class AbstractSerializationIrJsBoxTest : AbstractJsIrTest(
         builder.configureForKotlinxSerialization(target = TargetBackend.JS_IR)
     }
 }
-open class AbstractSerializationFirJsBoxTest : AbstractFirJsBlackBoxCodegenTest(
-    pathToTestDir = "plugins/kotlinx-serialization/testData/boxIr/",
-    testGroupOutputDirPrefix = "codegen/serializationBoxFir/"
-) {
-    override fun configure(builder: TestConfigurationBuilder) {
-        super.configure(builder)
-        builder.configureForKotlinxSerialization(target = TargetBackend.JS_IR)
-    }
-}

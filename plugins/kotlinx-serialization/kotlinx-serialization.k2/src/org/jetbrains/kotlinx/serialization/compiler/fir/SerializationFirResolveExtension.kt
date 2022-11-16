@@ -14,10 +14,12 @@ import org.jetbrains.kotlin.fir.analysis.checkers.getContainingDeclarationSymbol
 import org.jetbrains.kotlin.fir.builder.FirAnnotationContainerBuilder
 import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
+import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.origin
 import org.jetbrains.kotlin.fir.declarations.utils.isCompanion
+import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
@@ -399,6 +401,10 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
         val jsExportIgnoreConstructor = jsExportIgnoreAnnotation.declarationSymbols.firstIsInstanceOrNull<FirConstructorSymbol>() ?: return
 
         annotations.add(buildAnnotationCall {
+            argumentList = buildResolvedArgumentList(linkedMapOf())
+            annotationTypeRef = buildResolvedTypeRef {
+                type = jsExportIgnoreAnnotation.defaultType()
+            }
             calleeReference = buildResolvedNamedReference {
                 name = jsExportIgnoreAnnotation.name
                 resolvedSymbol = jsExportIgnoreConstructor
