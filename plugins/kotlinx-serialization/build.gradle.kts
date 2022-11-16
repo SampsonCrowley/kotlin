@@ -1,6 +1,6 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages;
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType;
-import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute;
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
+import org.jetbrains.kotlin.gradle.targets.js.d8.D8RootPlugin
 
 description = "Kotlin Serialization Compiler Plugin"
 
@@ -9,11 +9,13 @@ plugins {
     id("jps-compatible")
 }
 
+val d8Plugin = D8RootPlugin.apply(rootProject)
+d8Plugin.version = v8Version
+
 val jsonJsIrRuntimeForTests: Configuration by configurations.creating {
     attributes {
         attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
         attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.ir)
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(KotlinUsages.KOTLIN_RUNTIME))
     }
 }
 
@@ -21,7 +23,6 @@ val coreJsIrRuntimeForTests: Configuration by configurations.creating {
     attributes {
         attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
         attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.ir)
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(KotlinUsages.KOTLIN_RUNTIME))
     }
 }
 
@@ -82,11 +83,18 @@ testsJar()
 projectTest(parallel = true, jUnitMode = JUnitMode.JUnit5) {
     workingDir = rootDir
     useJUnitPlatform()
+    setUpJsIrBoxTests()
+}
+
+val generateTests by generator("org.jetbrains.kotlinx.serialization.TestGeneratorKt")
+
+fun Test.setUpJsIrBoxTests() {
+    dependsOn(d8Plugin.setupTaskProvider)
     dependsOn(":kotlin-stdlib-js-ir:compileKotlinJs")
-    dependsOn(":kotlin-stdlib-js-ir-minimal-for-test:compileKotlinJs")
     dependsOn(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
 
     doFirst {
+        systemProperty("javascript.engine.path.V8", d8Plugin.requireConfigured().executablePath.absolutePath)
         systemProperty("serialization.core.path", coreJsIrRuntimeForTests.asPath)
         systemProperty("serialization.json.path", jsonJsIrRuntimeForTests.asPath)
     }
@@ -96,5 +104,3 @@ projectTest(parallel = true, jUnitMode = JUnitMode.JUnit5) {
     systemProperty("kotlin.js.reduced.stdlib.path", "libraries/stdlib/js-ir-minimal-for-test/build/classes/kotlin/js/main")
     systemProperty("kotlin.js.kotlin.test.path", "libraries/kotlin.test/js-ir/build/classes/kotlin/js/main")
 }
-
-val generateTests by generator("org.jetbrains.kotlinx.serialization.TestGeneratorKt")
