@@ -371,7 +371,6 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
             return functionCall
         }
         if (calleeReference is FirNamedReferenceWithCandidate) return functionCall
-        dataFlowAnalyzer.enterCall()
         functionCall.transformAnnotations(transformer, data)
         functionCall.transformSingle(InvocationKindTransformer, null)
         functionCall.transformTypeArguments(transformer, ResolutionMode.ContextIndependent)
@@ -793,7 +792,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
             return checkNotNullCall
         }
 
-        dataFlowAnalyzer.enterCall()
+        dataFlowAnalyzer.enterCheckNotNullCall()
         checkNotNullCall.argumentList.transformArguments(transformer, ResolutionMode.ContextDependent)
         checkNotNullCall.transformAnnotations(transformer, ResolutionMode.ContextIndependent)
 
@@ -1107,7 +1106,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
             })
         }
 
-        dataFlowAnalyzer.enterCall()
+        dataFlowAnalyzer.enterDelegatedConstructorCall()
         var callCompleted = true
         var result = delegatedConstructorCall
         try {
@@ -1450,7 +1449,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
     }
 
     override fun transformStringConcatenationCall(stringConcatenationCall: FirStringConcatenationCall, data: ResolutionMode): FirStatement {
-        dataFlowAnalyzer.enterCall()
+        dataFlowAnalyzer.enterStringConcatenationCall()
         stringConcatenationCall.transformChildren(transformer, ResolutionMode.ContextIndependent)
         dataFlowAnalyzer.exitStringConcatenationCall(stringConcatenationCall)
         return stringConcatenationCall
