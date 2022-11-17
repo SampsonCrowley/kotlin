@@ -44,8 +44,8 @@ FILE: enums.kt
         public final static val entries: R|kotlin/enums/EnumEntries<WithNames>|
             public get(): R|kotlin/enums/EnumEntries<WithNames>|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<WithNames>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<WithNames>|
 
             private constructor(): R|WithNames.Companion|
 
@@ -77,8 +77,8 @@ FILE: enums.kt
         public final val w: R|WithNames| = R|<local>/w|
             public get(): R|WithNames|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Holder>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Holder>|
 
             private constructor(): R|Holder.Companion|
 

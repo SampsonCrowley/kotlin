@@ -13,8 +13,8 @@ FILE: classWithGenericParameters.kt
         public final val vs: R|kotlin/collections/List<V>| = R|<local>/vs|
             public get(): R|kotlin/collections/List<V>|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun <T, V> serializer(typeSerial0: R|kotlinx/serialization/KSerializer<T>|, typeSerial1: R|kotlinx/serialization/KSerializer<V>|): R|kotlinx/serialization/KSerializer<GenericBox<T, V>>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun <T, V> serializer(typeSerial0: R|kotlinx/serialization/KSerializer<T>|, typeSerial1: R|kotlinx/serialization/KSerializer<V>|): R|kotlinx/serialization/KSerializer<GenericBox<T, V>>|
 
             private constructor(): R|GenericBox.Companion|
 

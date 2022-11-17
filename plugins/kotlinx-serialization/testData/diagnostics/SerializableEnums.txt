@@ -37,11 +37,11 @@ public object EnumSerializer : kotlinx.serialization.KSerializer<ExplicitlyMarke
         public open override /*1*/ /*fake_override*/ fun typeParametersSerializers(): kotlin.Array<kotlinx.serialization.KSerializer<*>>
     }
 
-    public companion object Companion {
+    @kotlin.js.JsExport.Ignore public companion object Companion {
         private constructor Companion()
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
-        public final /*synthesized*/ fun serializer(): kotlinx.serialization.KSerializer<EnumUsage>
+        @kotlin.js.JsExport.Ignore public final /*synthesized*/ fun serializer(): kotlinx.serialization.KSerializer<EnumUsage>
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
     }
 }
@@ -74,11 +74,11 @@ public object EnumSerializer : kotlinx.serialization.KSerializer<ExplicitlyMarke
         public open override /*1*/ /*fake_override*/ fun typeParametersSerializers(): kotlin.Array<kotlinx.serialization.KSerializer<*>>
     }
 
-    public companion object Companion {
+    @kotlin.js.JsExport.Ignore public companion object Companion {
         private constructor Companion()
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
-        public final /*synthesized*/ fun serializer(): kotlinx.serialization.KSerializer<ExplicitlyMarkedEnum>
+        @kotlin.js.JsExport.Ignore public final /*synthesized*/ fun serializer(): kotlinx.serialization.KSerializer<ExplicitlyMarkedEnum>
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
     }
 
@@ -104,11 +104,11 @@ public object EnumSerializer : kotlinx.serialization.KSerializer<ExplicitlyMarke
     public final override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 
-    public companion object Companion {
+    @kotlin.js.JsExport.Ignore public companion object Companion {
         private constructor Companion()
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
-        public final /*synthesized*/ fun serializer(): kotlinx.serialization.KSerializer<ExplicitlyMarkedEnumCustom>
+        @kotlin.js.JsExport.Ignore public final /*synthesized*/ fun serializer(): kotlinx.serialization.KSerializer<ExplicitlyMarkedEnumCustom>
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
     }
 

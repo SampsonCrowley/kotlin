@@ -7,8 +7,8 @@ FILE: inlineClasses.kt
         public final val i: R|kotlin/Int| = R|<local>/i|
             public get(): R|kotlin/Int|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Foo>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Foo>|
 
             private constructor(): R|Foo.Companion|
 
@@ -37,8 +37,8 @@ FILE: inlineClasses.kt
         public final val f: R|Foo| = R|<local>/f|
             public get(): R|Foo|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Holder>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Holder>|
 
             private constructor(): R|Holder.Companion|
 

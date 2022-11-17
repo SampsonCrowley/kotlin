@@ -43,8 +43,8 @@ FILE: serializableWith.kt
         public final val value: R|kotlin/Int| = R|<local>/value|
             public get(): R|kotlin/Int|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<IntHolder>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<IntHolder>|
 
             private constructor(): R|IntHolder.Companion|
 
@@ -56,7 +56,7 @@ FILE: serializableWith.kt
             super<R|kotlin/Any|>()
         }
 
-        public final fun serializer(): R|kotlinx/serialization/KSerializer<SerializableObject>|
+        @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<SerializableObject>|
 
     }
     public final fun box(): R|kotlin/String| {

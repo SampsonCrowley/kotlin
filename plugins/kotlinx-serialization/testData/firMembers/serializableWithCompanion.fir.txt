@@ -35,7 +35,7 @@ FILE: serializableWithCompanion.kt
                 ^foo String(OK)
             }
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithCompanion>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithCompanion>|
 
         }
 
@@ -75,7 +75,7 @@ FILE: serializableWithCompanion.kt
                 ^foo String(OK)
             }
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithNamedCompanion>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithNamedCompanion>|
 
         }
 

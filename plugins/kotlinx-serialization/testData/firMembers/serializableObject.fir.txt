@@ -4,7 +4,7 @@ FILE: serializableObject.kt
             super<R|kotlin/Any|>()
         }
 
-        public final fun serializer(): R|kotlinx/serialization/KSerializer<FooBar>|
+        @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<FooBar>|
 
     }
     public final fun box(): R|kotlin/String| {

@@ -28,8 +28,8 @@ FILE: metaSerializable.kt
         public final val language: R|kotlin/String| = R|<local>/language|
             public get(): R|kotlin/String|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Project1>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Project1>|
 
             private constructor(): R|Project1.Companion|
 
@@ -61,8 +61,8 @@ FILE: metaSerializable.kt
         public final val language: R|kotlin/String| = R|<local>/language|
             public get(): R|kotlin/String|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Project2>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Project2>|
 
             private constructor(): R|Project2.Companion|
 
@@ -91,8 +91,8 @@ FILE: metaSerializable.kt
         @R|MySerializableWithInfo|(value = Int(234), kclass = <getClass>(Q|kotlin/Int|)) public final val project: R|Project2| = R|<local>/project|
             public get(): R|Project2|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Wrapper>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Wrapper>|
 
             private constructor(): R|Wrapper.Companion|
 
@@ -124,8 +124,8 @@ FILE: metaSerializable.kt
         public final val language: R|kotlin/String| = R|<local>/language|
             public get(): R|kotlin/String|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Project3>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Project3>|
 
             private constructor(): R|Project3.Companion|
 
@@ -157,8 +157,8 @@ FILE: metaSerializable.kt
         public final val language: R|kotlin/String| = R|<local>/language|
             public get(): R|kotlin/String|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Project4>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Project4>|
 
             private constructor(): R|Project4.Companion|
 
@@ -178,8 +178,8 @@ FILE: metaSerializable.kt
             public final val value1: R|kotlin/String| = R|<local>/value1|
                 public get(): R|kotlin/String|
 
-            public final companion object Companion : R|kotlin/Any| {
-                public final fun serializer(): R|kotlinx/serialization/KSerializer<TestSealed.A>|
+            @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestSealed.A>|
 
                 private constructor(): R|TestSealed.A.Companion|
 
@@ -209,8 +209,8 @@ FILE: metaSerializable.kt
             public final val value2: R|kotlin/String| = R|<local>/value2|
                 public get(): R|kotlin/String|
 
-            public final companion object Companion : R|kotlin/Any| {
-                public final fun serializer(): R|kotlinx/serialization/KSerializer<TestSealed.B>|
+            @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestSealed.B>|
 
                 private constructor(): R|TestSealed.B.Companion|
 
@@ -232,8 +232,8 @@ FILE: metaSerializable.kt
 
         }
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<TestSealed>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestSealed>|
 
             private constructor(): R|TestSealed.Companion|
 
@@ -253,8 +253,8 @@ FILE: metaSerializable.kt
             public final val value1: R|kotlin/String| = R|<local>/value1|
                 public get(): R|kotlin/String|
 
-            public final companion object Companion : R|kotlin/Any| {
-                public final fun serializer(): R|kotlinx/serialization/KSerializer<TestAbstract.A>|
+            @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestAbstract.A>|
 
                 private constructor(): R|TestAbstract.A.Companion|
 
@@ -284,8 +284,8 @@ FILE: metaSerializable.kt
             public final val value2: R|kotlin/String| = R|<local>/value2|
                 public get(): R|kotlin/String|
 
-            public final companion object Companion : R|kotlin/Any| {
-                public final fun serializer(): R|kotlinx/serialization/KSerializer<TestAbstract.B>|
+            @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestAbstract.B>|
 
                 private constructor(): R|TestAbstract.B.Companion|
 
@@ -307,8 +307,8 @@ FILE: metaSerializable.kt
 
         }
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<TestAbstract>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestAbstract>|
 
             private constructor(): R|TestAbstract.Companion|
 
@@ -331,8 +331,8 @@ FILE: metaSerializable.kt
         public final static val entries: R|kotlin/enums/EnumEntries<TestEnum>|
             public get(): R|kotlin/enums/EnumEntries<TestEnum>|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<TestEnum>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestEnum>|
 
             private constructor(): R|TestEnum.Companion|
 
@@ -358,7 +358,7 @@ FILE: metaSerializable.kt
             super<R|kotlin/Any|>()
         }
 
-        public final fun serializer(): R|kotlinx/serialization/KSerializer<TestObject>|
+        @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<TestObject>|
 
     }
     public final object MySerializer : R|kotlinx/serialization/KSerializer<Project4>| {

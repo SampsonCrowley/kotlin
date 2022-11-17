@@ -24,8 +24,8 @@ FILE: defaultProperties.kt
 
         public final fun copy(ctor: R|kotlin/Int| = this@R|/SomeClass|.R|/SomeClass.ctor|, ctorDependent: R|kotlin/Int| = this@R|/SomeClass|.R|/SomeClass.ctorDependent|): R|SomeClass|
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<SomeClass>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<SomeClass>|
 
             private constructor(): R|SomeClass.Companion|
 

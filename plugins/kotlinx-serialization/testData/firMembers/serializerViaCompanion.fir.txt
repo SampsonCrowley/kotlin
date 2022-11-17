@@ -21,7 +21,7 @@ FILE: serializerViaCompanion.kt
 
             public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|com/example/WithCompanion|
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithCompanion>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithCompanion>|
 
         }
 
@@ -50,7 +50,7 @@ FILE: serializerViaCompanion.kt
 
             public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|com/example/WithNamedCompanion|
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithNamedCompanion>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithNamedCompanion>|
 
         }
 
@@ -79,7 +79,7 @@ FILE: serializerViaCompanion.kt
 
             public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|com/example/WithExplicitType|
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithExplicitType>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/WithExplicitType>|
 
         }
 
@@ -115,7 +115,7 @@ FILE: serializerViaCompanion.kt
 
             public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|com/example/PartiallyOverridden|
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/PartiallyOverridden>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/PartiallyOverridden>|
 
         }
 
@@ -164,7 +164,7 @@ FILE: serializerViaCompanion.kt
 
             public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|com/example/PartiallyWithoutType|): R|kotlin/Unit|
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/PartiallyWithoutType>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/PartiallyWithoutType>|
 
         }
 
@@ -198,7 +198,7 @@ FILE: serializerViaCompanion.kt
                 ^deserialize R|com/example/FullyOverridden.FullyOverridden|(R|<local>/i|)
             }
 
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/FullyOverridden>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<com/example/FullyOverridden>|
 
         }
 

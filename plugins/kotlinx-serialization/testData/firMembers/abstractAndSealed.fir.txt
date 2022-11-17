@@ -1,7 +1,7 @@
 FILE: abstractAndSealed.kt
     @R|kotlinx/serialization/Serializable|() public sealed interface I : R|kotlin/Any| {
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<I>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<I>|
 
             private constructor(): R|I.Companion|
 
@@ -21,8 +21,8 @@ FILE: abstractAndSealed.kt
             ^exposeX this@R|/X|.R|/X.x|
         }
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<X>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<X>|
 
             private constructor(): R|X.Companion|
 
@@ -42,8 +42,8 @@ FILE: abstractAndSealed.kt
             ^exposeY this@R|/Y|.R|/Y.y|
         }
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Y>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Y>|
 
             private constructor(): R|Y.Companion|
 
@@ -55,8 +55,8 @@ FILE: abstractAndSealed.kt
             super<R|Y|>()
         }
 
-        public final companion object Companion : R|kotlin/Any| {
-            public final fun serializer(): R|kotlinx/serialization/KSerializer<Bottom>|
+        @R|kotlin/js/JsExport.Ignore|() public final companion object Companion : R|kotlin/Any| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serializer(): R|kotlinx/serialization/KSerializer<Bottom>|
 
             private constructor(): R|Bottom.Companion|
 
