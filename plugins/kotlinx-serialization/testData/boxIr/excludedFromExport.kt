@@ -4,7 +4,7 @@
 // RUN_PLAIN_BOX_FUNCTION
 // INFER_MAIN_MODULE
 
-// MODULE: js_export_and_serializable
+// MODULE: lib
 // FILE: lib.kt
 
 import kotlinx.serialization.*
@@ -25,7 +25,7 @@ class WithCompanion(val name: String, val age: UInt) {
 
 // FILE: test.js
 function box() {
-    const { Basic, WithCompanion } = this.js_export_and_serializable;
+    const { Basic, WithCompanion } = this.lib;
 
     if (Basic.Companion !== undefined) return "fail: Basic should not export synthetic companion";
 
