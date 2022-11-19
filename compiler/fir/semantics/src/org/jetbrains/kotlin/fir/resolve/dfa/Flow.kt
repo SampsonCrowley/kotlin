@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.fir.resolve.dfa
 
-abstract class Flow {
-    abstract val knownVariables: Set<RealVariable>
-    abstract fun unwrapVariable(variable: RealVariable): RealVariable
-    abstract fun getTypeStatement(variable: RealVariable): TypeStatement?
+interface Flow {
+    val knownVariables: Set<RealVariable>
+    fun unwrapVariable(variable: RealVariable): RealVariable
+    fun getTypeStatement(variable: RealVariable): TypeStatement?
 }
