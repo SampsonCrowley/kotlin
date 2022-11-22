@@ -1020,6 +1020,7 @@ open class RawFirBuilder(
                         }
                     }
                 }
+                baseSession.scriptConfiguratorService?.configure?.invoke(this)
             }
         }
 

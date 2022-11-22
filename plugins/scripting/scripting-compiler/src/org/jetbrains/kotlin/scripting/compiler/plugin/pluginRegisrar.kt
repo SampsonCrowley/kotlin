@@ -14,12 +14,14 @@ import org.jetbrains.kotlin.cli.common.extensions.ScriptEvaluationExtension
 import org.jetbrains.kotlin.cli.common.extensions.ShellExtension
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.extensions.CollectAdditionalSourcesExtension
 import org.jetbrains.kotlin.extensions.CompilerConfigurationExtension
 import org.jetbrains.kotlin.extensions.ProcessSourcesBeforeCompilingExtension
 import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.resolve.extensions.ExtraImportsProviderExtension
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 import org.jetbrains.kotlin.scripting.compiler.plugin.definitions.CliScriptDefinitionProvider
@@ -33,7 +35,6 @@ import org.jetbrains.kotlin.scripting.definitions.ScriptDependenciesProvider
 import org.jetbrains.kotlin.scripting.extensions.ScriptExtraImportsProviderExtension
 import org.jetbrains.kotlin.scripting.extensions.ScriptingResolveExtension
 import org.jetbrains.kotlin.scripting.resolve.ScriptReportSink
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.net.URLClassLoader
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
@@ -75,6 +76,21 @@ class ScriptingCompilerConfigurationComponentRegistrar : ComponentRegistrar {
             }
         }
     }
+}
+
+class ScriptingK2CompilerPluginRegistrar : CompilerPluginRegistrar() {
+    companion object {
+        fun registerComponents(extensionStorage: ExtensionStorage, compilerConfiguration: CompilerConfiguration) = with(extensionStorage) {
+            FirExtensionRegistrarAdapter.registerExtension(FirScriptingCompilerExtensionRegistrar())
+        }
+    }
+
+    override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+        registerComponents(this, configuration)
+    }
+
+    override val supportsK2: Boolean
+        get() = true
 }
 
 private inline fun withClassloadingProblemsReporting(messageCollector: MessageCollector?, body: () -> Unit) {
