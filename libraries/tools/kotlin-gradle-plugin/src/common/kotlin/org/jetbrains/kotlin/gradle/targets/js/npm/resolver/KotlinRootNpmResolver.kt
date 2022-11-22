@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResol
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinRootNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnEnv
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnResolution
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.toVersionString
 import org.jetbrains.kotlin.gradle.utils.unavailableValueError
 
@@ -32,24 +33,25 @@ import org.jetbrains.kotlin.gradle.utils.unavailableValueError
  * create an own copy. We use build services as a single storage for the heavy state of this class.
  */
 class KotlinRootNpmResolver internal constructor(
-    @Transient
-    val nodeJs: NodeJsRootExtension?,
-    val rootProjectName: String,
-    val rootProjectVersion: String,
-    @Transient
-    val buildServiceRegistry: BuildServiceRegistry,
-    internal val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
-    internal val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
-    internal val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
-    @Transient
-    val yarnEnvironment_: Provider<YarnEnv>?,
-    @Transient
-    val npmEnvironment_: Provider<NpmEnvironment>?,
-    @Transient
-    val yarnResolutions_: Provider<List<YarnResolution>>?
+    val rootProjectName: Provider<String>,
+    val rootProjectVersion: Provider<String>,
+//    @Transient
+    val nodeJs: Provider<NodeJsRootExtension>,
+    val yarn: Provider<YarnRootExtension>,
+//    @Transient
+//    val buildServiceRegistry: BuildServiceRegistry,
+    val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
+    val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
+    val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+//    @Transient
+//    val yarnEnvironment_: Provider<YarnEnv>?,
+//    @Transient
+//    val npmEnvironment_: Provider<NpmEnvironment>?,
+//    @Transient
+//    val yarnResolutions_: Provider<List<YarnResolution>>?
 ) {
-    private val nodeJs_
-        get() = nodeJs ?: unavailableValueError("nodeJs")
+//    private val nodeJs_
+//        get() = nodeJs ?: unavailableValueError("nodeJs")
 
 //    private val rootProject: Project?
 //        get() = nodeJs?.rootProject
@@ -65,19 +67,18 @@ class KotlinRootNpmResolver internal constructor(
 //        rootProject_.version.toString()
 //    }
 
-    @Transient
     @Volatile
-    private var state_: RootResolverState? = RootResolverState.CONFIGURING
+    private var state: RootResolverState? = RootResolverState.CONFIGURING
 
-    var state
-        get() = state_ ?: resolverStateHolder.get().state
-        set(value) {
-            if (state_ != null) {
-                state_ = value
-            } else {
-                resolverStateHolder.get().state = value
-            }
-        }
+//    var state
+//        get() = state_ ?: resolverStateHolder.get().state
+//        set(value) {
+//            if (state_ != null) {
+//                state_ = value
+//            } else {
+//                resolverStateHolder.get().state = value
+//            }
+//        }
 
 //    private val archiveOperations by lazy { ArchiveOperationsCompat(rootProject_) }
 //    private val fs by lazy { FileSystemOperationsCompat(rootProject_) }
@@ -105,8 +106,8 @@ class KotlinRootNpmResolver internal constructor(
     internal val compositeNodeModules: CompositeNodeModulesCache
         get() = compositeNodeModulesProvider.get()
 
-    @Transient
-    private val projectResolvers_: MutableMap<String, KotlinProjectNpmResolver>? = mutableMapOf()
+//    @Transient
+    private val projectResolvers_: MutableMap<String, KotlinProjectNpmResolver> = mutableMapOf()
 
 //    @Transient
 //    private val yarnEnvironment_: Provider<YarnEnv>? = rootProject_.provider {
@@ -123,58 +124,59 @@ class KotlinRootNpmResolver internal constructor(
 //        YarnPlugin.apply(rootProject_).resolutions
 //    }
 
-    @Transient
-    private val taskRequirements_: TasksRequirements? = nodeJs_.taskRequirements
+//    @Transient
+    private val taskRequirements_
+        get() = nodeJs.map { it.taskRequirements }
 
-    private val resolverStateHolder by lazy {
-        buildServiceRegistry.registerIfAbsent(
-            KotlinRootNpmResolverStateHolder::class.qualifiedName,
-            KotlinRootNpmResolverStateHolder::class.java
-        ) { service ->
-            service.parameters.projectResolvers.set(projectResolvers_)
-            service.parameters.packageManager.set(nodeJs_.packageManager)
-            service.parameters.yarnEnvironment.set(yarnEnvironment_?.get())
-            service.parameters.npmEnvironment.set(npmEnvironment_?.get())
-            service.parameters.yarnResolutions.set(yarnResolutions_?.get())
-            service.parameters.taskRequirements.set(taskRequirements_)
-            service.parameters.packageJsonHandlers.set(compilations.associate { compilation ->
-                "${compilation.project.path}:${compilation.disambiguatedName}" to compilation.packageJsonHandlers
-            }.filter { it.value.isNotEmpty() })
-        }
-    }
+//    private val resolverStateHolder by lazy {
+//        buildServiceRegistry.registerIfAbsent(
+//            KotlinRootNpmResolverStateHolder::class.qualifiedName,
+//            KotlinRootNpmResolverStateHolder::class.java
+//        ) { service ->
+//            service.parameters.projectResolvers.set(projectResolvers_)
+//            service.parameters.packageManager.set(nodeJs_.packageManager)
+//            service.parameters.yarnEnvironment.set(yarnEnvironment_?.get())
+//            service.parameters.npmEnvironment.set(npmEnvironment_?.get())
+//            service.parameters.yarnResolutions.set(yarnResolutions_?.get())
+//            service.parameters.taskRequirements.set(taskRequirements_)
+//            service.parameters.packageJsonHandlers.set(compilations.associate { compilation ->
+//                "${compilation.project.path}:${compilation.disambiguatedName}" to compilation.packageJsonHandlers
+//            }.filter { it.value.isNotEmpty() })
+//        }
+//    }
 
-    private val configurationCacheProjectResolvers: MutableMap<String, KotlinProjectNpmResolver>
-        get() {
-            val stateHolder = resolverStateHolder.get()
-            val projResolvers = stateHolder.parameters.projectResolvers.get()
-            if (stateHolder.initialized) return projResolvers
-            projResolvers.forEach { (_, value) ->
-                value.resolver = this
-                value.compilationResolvers.forEach { compResolver ->
-                    compResolver.rootResolver = this
-                }
-            }
-            stateHolder.initialized = true
-            return projResolvers
-        }
+//    private val configurationCacheProjectResolvers: MutableMap<String, KotlinProjectNpmResolver>
+//        get() {
+//            val stateHolder = resolverStateHolder.get()
+//            val projResolvers = stateHolder.parameters.projectResolvers.get()
+//            if (stateHolder.initialized) return projResolvers
+//            projResolvers.forEach { (_, value) ->
+//                value.resolver = this
+//                value.compilationResolvers.forEach { compResolver ->
+//                    compResolver.rootResolver = this
+//                }
+//            }
+//            stateHolder.initialized = true
+//            return projResolvers
+//        }
 
     private val projectResolvers
-        get() = projectResolvers_ ?: configurationCacheProjectResolvers
+        get() = projectResolvers_/* ?: configurationCacheProjectResolvers*/
 
     private val packageManager
-        get() = nodeJs?.packageManager ?: resolverStateHolder.get().parameters.packageManager.get()
+        get() = nodeJs.map { it.packageManager }
 
     private val yarnEnvironment
-        get() = yarnEnvironment_?.get() ?: resolverStateHolder.get().parameters.yarnEnvironment.get()
+        get() = yarn.map { it.requireConfigured() }
 
     private val npmEnvironment
-        get() = npmEnvironment_?.get() ?: resolverStateHolder.get().parameters.npmEnvironment.get()
+        get() = nodeJs.map { it.asNpmEnvironment }
 
     private val yarnResolutions
-        get() = yarnResolutions_?.get() ?: resolverStateHolder.get().parameters.yarnResolutions.get()
+        get() = yarn.map { it.resolutions }
 
     internal val taskRequirements
-        get() = taskRequirements_ ?: resolverStateHolder.get().parameters.taskRequirements.get()
+        get() = taskRequirements_/* ?: resolverStateHolder.get().parameters.taskRequirements.get()*/
 
 //    internal val mayBeUpToDateTasksRegistry =
 //        MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(rootProject_)
@@ -250,13 +252,13 @@ class KotlinRootNpmResolver internal constructor(
             gradleNodeModules.close()
             compositeNodeModules.close()
 
-            packageManager.prepareRootProject(
-                npmEnvironment,
-                rootProjectName,
-                rootProjectVersion,
+            packageManager.get().prepareRootProject(
+                npmEnvironment.get(),
+                rootProjectName.get(),
+                rootProjectVersion.get(),
                 logger,
                 allNpmPackages,
-                yarnResolutions
+                yarnResolutions.get()
                     .associate { it.path to it.toVersionString() },
             )
 
@@ -288,11 +290,11 @@ class KotlinRootNpmResolver internal constructor(
                     .values
                     .flatMap { it.npmProjects }
 
-                packageManager.resolveRootProject(
+                packageManager.get().resolveRootProject(
                     services,
                     logger,
-                    npmEnvironment,
-                    yarnEnvironment,
+                    npmEnvironment.get(),
+                    yarnEnvironment.get(),
                     allNpmPackages,
                     args
                 )

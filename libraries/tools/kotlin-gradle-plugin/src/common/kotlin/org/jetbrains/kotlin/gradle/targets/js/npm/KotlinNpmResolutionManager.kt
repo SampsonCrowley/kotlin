@@ -7,24 +7,16 @@ package org.jetbrains.kotlin.gradle.targets.js.npm
 
 import org.gradle.api.Incubating
 import org.gradle.api.logging.Logger
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinRootNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.*
-import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.MayBeUpToDatePackageJsonTasksRegistry
 import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinPackageJsonTask
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnEnv
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnResolution
-import org.jetbrains.kotlin.gradle.utils.unavailableValueError
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import java.io.File
 
 /**
@@ -68,60 +60,56 @@ import java.io.File
  * User can call [requireInstalled] to get resolution info.
  */
 abstract class KotlinNpmResolutionManager internal constructor(
-    @Transient private val nodeJsSettings: NodeJsRootExtension?,
-    val stateHolderProvider: Provider<KotlinNpmResolutionManagerStateHolder>,
-    val rootProjectName: String,
-    val rootProjectVersion: String,
-    @Transient
-    val buildServiceRegistry: BuildServiceRegistry,
-    internal val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
-    internal val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
-    internal val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
-    @Transient
-    val yarnEnvironment_: Provider<YarnEnv>?,
-    @Transient
-    val npmEnvironment_: Provider<NpmEnvironment>?,
-    @Transient
-    val yarnResolutions_: Provider<List<YarnResolution>>?
-) : BuildService<BuildServiceParameters.None> {
+//    @Transient private val nodeJsSettings: NodeJsRootExtension?,
+//    val stateHolderProvider: Provider<KotlinNpmResolutionManagerStateHolder>,
+//    val rootProjectName: String,
+//    val rootProjectVersion: String,
+//    @Transient
+//    val buildServiceRegistry: BuildServiceRegistry,
+//    internal val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
+//    internal val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
+//    internal val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+//    @Transient
+//    val yarnEnvironment_: Provider<YarnEnv>?,
+//    @Transient
+//    val npmEnvironment_: Provider<NpmEnvironment>?,
+//    @Transient
+//    val yarnResolutions_: Provider<List<YarnResolution>>?
+) : BuildService<KotlinNpmResolutionManager.Parameters> {
 
     internal interface Parameters : BuildServiceParameters {
-        val projectResolvers: MapProperty<String, KotlinProjectNpmResolver>
-        val packageManager: Property<NpmApi>
-        val yarnEnvironment: Property<YarnEnv>
-        val npmEnvironment: Property<NpmEnvironment>
-        val yarnResolutions: ListProperty<YarnResolution>
-        val taskRequirements: Property<TasksRequirements>
-
-        // pulled up from compilation resolver since it was failing with ClassNotFoundException on deserialization, see KT-49061
-        val packageJsonHandlers: MapProperty<String, List<PackageJson.() -> Unit>>
+        val rootProjectName: Property<String>
+        val rootProjectVersion: Property<String>
+        val nodeJs: Property<NodeJsRootExtension>
+        val yarn: Property<YarnRootExtension>
+        val gradleNodeModulesProvider: Property<GradleNodeModulesCache>
+        val compositeNodeModulesProvider: Property<CompositeNodeModulesCache>
+        val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
     }
 
     val resolver = KotlinRootNpmResolver(
-        nodeJsSettings,
-        rootProjectName,
-        rootProjectVersion,
-        buildServiceRegistry,
-        gradleNodeModulesProvider,
-        compositeNodeModulesProvider,
-        mayBeUpToDateTasksRegistry,
-        yarnEnvironment_,
-        npmEnvironment_,
-        yarnResolutions_
+        parameters.rootProjectName,
+        parameters.rootProjectVersion,
+        parameters.nodeJs,
+        parameters.yarn,
+//        buildServiceRegistry,
+        parameters.gradleNodeModulesProvider,
+        parameters.compositeNodeModulesProvider,
+        parameters.mayBeUpToDateTasksRegistry,
+//        yarnEnvironment_,
+//        npmEnvironment_,
+//        yarnResolutions_
     )
 
-    abstract class KotlinNpmResolutionManagerStateHolder : BuildService<BuildServiceParameters.None> {
-        @Volatile
-        internal var state: ResolutionState? = null
-    }
+//    abstract class KotlinNpmResolutionManagerStateHolder : BuildService<BuildServiceParameters.None> {
+//        @Volatile
+//        internal var state: ResolutionState? = null
+//    }
+//
+//    private val stateHolder get() = stateHolderProvider.get()
 
-    private val stateHolder get() = stateHolderProvider.get()
-
-    var state: ResolutionState
-        get() = stateHolder.state ?: ResolutionState.Configuring(resolver)
-        set(value) {
-            stateHolder.state = value
-        }
+    @Volatile
+    var state: ResolutionState = ResolutionState.Configuring(resolver)
 
     sealed class ResolutionState {
         abstract val npmProjects: List<NpmProject>
@@ -176,7 +164,7 @@ abstract class KotlinNpmResolutionManager internal constructor(
         services: ServiceRegistry,
         logger: Logger
     ): KotlinRootNpmResolution? {
-        synchronized(stateHolder) {
+        synchronized(this) {
             if (state is ResolutionState.Installed) {
                 return (state as ResolutionState.Installed).resolved
             }
@@ -211,7 +199,7 @@ abstract class KotlinNpmResolutionManager internal constructor(
             }
 
             is ResolutionState.Configuring -> {
-                synchronized(stateHolder) {
+                synchronized(this) {
                     val state1 = this.state
                     when (state1) {
                         is ResolutionState.Prepared -> state1.preparedInstallation

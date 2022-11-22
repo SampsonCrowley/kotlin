@@ -27,19 +27,15 @@ import kotlin.reflect.KClass
  * See [KotlinNpmResolutionManager] for details about resolution process.
  */
 internal class KotlinProjectNpmResolver(
-    @Transient
-    val project: Project,
+    project: Project,
     @Transient
     var resolver: KotlinRootNpmResolver
 ) : Serializable {
-    override fun toString(): String = "ProjectNpmResolver($project)"
-
     private val projectPath by lazy { project.path }
 
     private val byCompilation = mutableMapOf<String, KotlinCompilationNpmResolver>()
 
     operator fun get(compilation: KotlinJsCompilation): KotlinCompilationNpmResolver {
-        check(compilation.target.project == project)
         return byCompilation[compilation.disambiguatedName] ?: error("$compilation was not registered in $this")
     }
 
@@ -53,11 +49,11 @@ internal class KotlinProjectNpmResolver(
         get() = byCompilation.values
 
     init {
-        addContainerListeners()
+        project.addContainerListeners()
     }
 
-    private fun addContainerListeners() {
-        val kotlin = project.kotlinExtensionOrNull
+    private fun Project.addContainerListeners() {
+        val kotlin = kotlinExtensionOrNull
             ?: error("NpmResolverPlugin should be applied after kotlin plugin")
 
         when (kotlin) {
@@ -106,7 +102,7 @@ internal class KotlinProjectNpmResolver(
         return KotlinProjectNpmResolution(
             projectPath,
             byCompilation.values.mapNotNull { it.close() },
-            resolver.taskRequirements.byTask
+            resolver.taskRequirements.get().byTask
         )
     }
 }

@@ -36,11 +36,6 @@ open class NodeJsRootPlugin : Plugin<Project> {
             "NodeJsRootPlugin can be applied only to root project"
         }
 
-        val npmResolutionManagerStateHolder = project.gradle.sharedServices.registerIfAbsent(
-            "npm-resolution-manager-state-holder", KotlinNpmResolutionManager.KotlinNpmResolutionManagerStateHolder::class.java
-        ) {
-        }
-
         val nodeJs = project.extensions.create(
             NodeJsRootExtension.EXTENSION_NAME,
             NodeJsRootExtension::class.java,
@@ -113,21 +108,32 @@ open class NodeJsRootPlugin : Plugin<Project> {
                 it.parameters.rootProjectDir.set(project.projectDir)
             }
 
-        project.extensions.create(
-            NodeJsRootExtension.EXTENSION_NAME_2,
-            KotlinNpmResolutionManager::class.java,
-            nodeJs,
-            npmResolutionManagerStateHolder,
-            project.name,
-            project.version.toString(),
-            project.gradle.sharedServices,
-            gradleNodeModulesProvider,
-            compositeNodeModulesProvider,
-            MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project),
-            yarnEnv,
-            npmEnvironment,
-            yarnResolutions
-        )
+        val kotlinNpmResolutionManager: Provider<KotlinNpmResolutionManager> =
+            project.gradle.sharedServices.registerIfAbsent("kotlin-npm-resolution-manager", KotlinNpmResolutionManager::class.java) {
+                it.parameters.rootProjectName.set(project.name)
+                it.parameters.rootProjectVersion.set(project.version.toString())
+                it.parameters.nodeJs.set(nodeJs)
+                it.parameters.yarn.set(yarnExtension)
+                it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
+                it.parameters.compositeNodeModulesProvider.set(compositeNodeModulesProvider)
+                it.parameters.mayBeUpToDateTasksRegistry.set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))
+            }
+
+//        project.extensions.create(
+//            NodeJsRootExtension.EXTENSION_NAME_2,
+//            KotlinNpmResolutionManager::class.java,
+//            nodeJs,
+//            npmResolutionManagerStateHolder,
+//            project.name,
+//            project.version.toString(),
+//            project.gradle.sharedServices,
+//            gradleNodeModulesProvider,
+//            compositeNodeModulesProvider,
+//            MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project),
+//            yarnEnv,
+//            npmEnvironment,
+//            yarnResolutions
+//        )
 
         project.tasks.register("node" + CleanDataTask.NAME_SUFFIX, CleanDataTask::class.java) {
             it.cleanableStoreProvider = project.provider { nodeJs.requireConfigured().cleanableStore }
