@@ -368,7 +368,7 @@ class FirCallCompleter(
             }
             transformer.context.dropContextForAnonymousFunction(lambdaArgument)
 
-            val returnArguments = components.dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(lambdaArgument)
+            val returnArguments = components.dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(lambdaArgument)!!
 
             return ReturnArgumentsAnalysisResult(returnArguments, builderInferenceSession)
         }

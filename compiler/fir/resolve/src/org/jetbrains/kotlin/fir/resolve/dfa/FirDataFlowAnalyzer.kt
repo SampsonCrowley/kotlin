@@ -151,12 +151,9 @@ abstract class FirDataFlowAnalyzer(
         return variable.stability to types.toMutableList()
     }
 
-    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction): Collection<FirStatement> {
+    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction): Collection<FirStatement>? {
         return graphBuilder.returnExpressionsOfAnonymousFunction(function)
     }
-
-    fun isThereControlFlowInfoForAnonymousFunction(function: FirAnonymousFunction): Boolean =
-        graphBuilder.isThereControlFlowInfoForAnonymousFunction(function)
 
     fun dropSubgraphFromCall(call: FirFunctionCall) {
         graphBuilder.dropSubgraphFromCall(call)
@@ -220,8 +217,8 @@ abstract class FirDataFlowAnalyzer(
             finishPostponedAnonymousFunction()
             enterLocalFunction(anonymousFunction)
         }
-        val (postponedLambdaEnterNode, functionEnterNode) = graphBuilder.enterAnonymousFunction(anonymousFunction)
-        postponedLambdaEnterNode?.mergeIncomingFlow()
+        val (functionDeclarationNode, functionEnterNode) = graphBuilder.enterAnonymousFunction(anonymousFunction)
+        functionDeclarationNode?.mergeIncomingFlow()
         functionEnterNode.mergeIncomingFlow {
             if (anonymousFunction.invocationKind?.canBeRevisited() != false) {
                 enterCapturingStatement(it, anonymousFunction)

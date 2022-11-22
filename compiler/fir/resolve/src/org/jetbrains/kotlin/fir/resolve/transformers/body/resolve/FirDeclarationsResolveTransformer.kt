@@ -597,7 +597,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirAbstractBodyResolve
             // TODO: This part seems unnecessary because for lambdas in dependent context will be completed and their type
             //  should be replaced there properly
             val returnType =
-                dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(result)
+                dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(result)!!
                     .firstNotNullOfOrNull { (it as? FirExpression)?.resultType?.coneTypeSafe() }
             val resolutionMode = if (returnType != null) {
                 withExpectedType(returnType)
@@ -873,7 +873,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirAbstractBodyResolve
         )
         lambda.transformSingle(writer, expectedTypeRef.coneTypeSafe<ConeKotlinType>()?.toExpectedType())
 
-        val returnStatements = dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(lambda)
+        val returnStatements = dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(lambda)!!
         val returnExpressionsExceptLast =
             if (returnStatements.size > 1)
                 returnStatements - lambda.body?.statements?.lastOrNull()
