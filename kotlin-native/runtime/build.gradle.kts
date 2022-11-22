@@ -208,7 +208,8 @@ bitcode {
         }
 
         testsGroup("custom_alloc_runtime_tests") {
-            testedModules.addAll("main", "custom_alloc", "experimental_memory_manager", "common_gc", "concurrent_ms_gc", "objc")
+            testedModules.addAll("custom_alloc")
+            testSupportModules.addAll("main", "experimental_memory_manager", "common_gc", "concurrent_ms_gc", "objc")
         }
 
         testsGroup("mimalloc_runtime_tests") {

@@ -4,6 +4,7 @@
 #include <random>
 
 #include "CustomAllocator.hpp"
+#include "GCScheduler.hpp"
 #include "gtest/gtest.h"
 #include "Heap.hpp"
 #include "SmallPage.hpp"
@@ -23,7 +24,9 @@ TEST(CustomAllocTest, SmallAllocNonNull) {
         fakeTypes[i] = { .instanceSize_ = 8 * i , .flags_ = 0 };
     }
     Heap heap;
-    CustomAllocator ca(heap);
+    kotlin::gc::GCSchedulerConfig config;
+    kotlin::gc::GCSchedulerThreadData schedulerData(config, [](auto&){});
+    CustomAllocator ca(heap, schedulerData);
     uint64_t* obj[N];
     for (int i = 1 ; i < N ; ++i) {
         TypeInfo* type = fakeTypes + i;
@@ -37,7 +40,9 @@ TEST(CustomAllocTest, SmallAllocSameSmallPage) {
     for (int blocks = MIN_BLOCK_SIZE ;
             blocks < SMALL_PAGE_MAX_BLOCK_SIZE ; ++blocks) {
         Heap heap;
-        CustomAllocator ca(heap);
+        kotlin::gc::GCSchedulerConfig config;
+        kotlin::gc::GCSchedulerThreadData schedulerData(config, [](auto&){});
+        CustomAllocator ca(heap, schedulerData);
         TypeInfo fakeType = { .instanceSize_ = 8*blocks , .flags_ = 0 };
         void* obj = ca.CreateObject(&fakeType);
         uint64_t* first = reinterpret_cast<uint64_t*>(obj);
@@ -53,8 +58,12 @@ TEST(CustomAllocTest, SmallAllocSameSmallPage) {
 TEST(CustomAllocTest, TwoAllocatorsDifferentPages) {
     for (int blocks = MIN_BLOCK_SIZE ; blocks < 2000 ; ++blocks) {
         Heap heap;
-        CustomAllocator ca1(heap);
-        CustomAllocator ca2(heap);
+        kotlin::gc::GCScheduler scheduler;
+        kotlin::gc::GCSchedulerConfig config;
+        kotlin::gc::GCSchedulerThreadData schedulerData1(config, [](auto&){});
+        kotlin::gc::GCSchedulerThreadData schedulerData2(config, [](auto&){});
+        CustomAllocator ca1(heap, schedulerData1);
+        CustomAllocator ca2(heap, schedulerData2);
         TypeInfo fakeType = { .instanceSize_ = 8*blocks , .flags_ = 0 };
         uint8_t* obj1 = reinterpret_cast<uint8_t*>(ca1.CreateObject(&fakeType));
         uint8_t* obj2 = reinterpret_cast<uint8_t*>(ca2.CreateObject(&fakeType));

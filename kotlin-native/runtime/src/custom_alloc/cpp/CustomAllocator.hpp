@@ -8,6 +8,7 @@
 
 #include "Cell.hpp"
 #include "CustomLogging.hpp"
+#include "GCScheduler.hpp"
 #include "Heap.hpp"
 #include "MediumPage.hpp"
 #include "Memory.h"
@@ -94,7 +95,8 @@ class CustomAllocator {
 // LargePages. As a consequence, they are only swept by the GC thread.
 
 public:
-    explicit CustomAllocator(Heap& heap) noexcept : heap_(heap), mediumPage_(nullptr) {
+    explicit CustomAllocator(Heap& heap, gc::GCSchedulerThreadData& gcScheduler)
+    noexcept : heap_(heap), gcScheduler_(gcScheduler), mediumPage_(nullptr) {
         CustomAllocInfo("CustomAllocator::CustomAllocator(heap)");
         memset(smallPages_, 0, sizeof(smallPages_));
     }
@@ -114,23 +116,13 @@ public:
     }
 
 private:
-    // Allocates a block of `size` bytes. This is the only method in this
-    // module that measures size in bytes rather than number of Cells.  Returns
-    // null only in the case that malloc returns null.
-    void* Alloc(uint64_t size) noexcept {
-        CustomAllocDebug("CustomAllocator@%p::Alloc(%" PRIu64 ")", this, size);
-        uint64_t cellCount = (size + sizeof(Cell) - 1) / sizeof(Cell);
-        void* ptr = Allocate(cellCount);
-        memset(ptr, 0, size);
-        return ptr;
-    }
-
     void* Allocate(uint64_t cellCount) noexcept;
     void* AllocateInLargePage(uint64_t cellCount) noexcept;
     void* AllocateInMediumPage(uint32_t cellCount) noexcept;
     void* AllocateInSmallPage(uint32_t cellCount) noexcept;
 
     Heap& heap_;
+    gc::GCSchedulerThreadData& gcScheduler_;
     MediumPage* mediumPage_;
     SmallPage* smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE+1];
 };

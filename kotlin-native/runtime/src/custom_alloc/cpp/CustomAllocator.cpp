@@ -9,6 +9,7 @@
 
 #include "ConcurrentMarkAndSweep.hpp"
 #include "CustomLogging.hpp"
+#include "GCScheduler.hpp"
 #include "LargePage.hpp"
 #include "MediumPage.hpp"
 #include "SmallPage.hpp"
@@ -46,7 +47,7 @@ uint64_t ArrayAllocatedDataSize(const TypeInfo* typeInfo, uint32_t count) noexce
 ObjHeader* CustomAllocator::CreateObject(const TypeInfo* typeInfo) noexcept {
     RuntimeAssert(!typeInfo->IsArray(), "Must not be an array");
     size_t allocSize = ObjectAllocatedDataSize(typeInfo);
-    auto* heapObject = new (Alloc(allocSize)) HeapObjHeader();
+    auto* heapObject = new (Allocate(allocSize)) HeapObjHeader();
     auto* object = &heapObject->object;
     object->typeInfoOrMeta_ = const_cast<TypeInfo*>(typeInfo);
     return object;
@@ -55,22 +56,27 @@ ObjHeader* CustomAllocator::CreateObject(const TypeInfo* typeInfo) noexcept {
 ArrayHeader* CustomAllocator::CreateArray(const TypeInfo* typeInfo, uint32_t count) noexcept {
     RuntimeAssert(typeInfo->IsArray(), "Must be an array");
     auto allocSize = ArrayAllocatedDataSize(typeInfo, count);
-    auto* heapArray = new (Alloc(allocSize)) HeapArrayHeader();
+    auto* heapArray = new (Allocate(allocSize)) HeapArrayHeader();
     auto* array = &heapArray->array;
     array->typeInfoOrMeta_ = const_cast<TypeInfo*>(typeInfo);
     array->count_ = count;
     return array;
 }
 
-void* CustomAllocator::Allocate(uint64_t cellCount) noexcept {
-    CustomAllocDebug("CustomAllocator::Allocate(%" PRIu64 ")", cellCount);
+void* CustomAllocator::Allocate(uint64_t size) noexcept {
+    gcScheduler_.OnSafePointAllocation(size);
+    CustomAllocDebug("CustomAllocator::Allocate(%" PRIu64 ")", size);
+    uint64_t cellCount = (size + sizeof(Cell) - 1) / sizeof(Cell);
+    void* ptr;
     if (cellCount <= SMALL_PAGE_MAX_BLOCK_SIZE) {
-        return AllocateInSmallPage(cellCount);
+        ptr = AllocateInSmallPage(cellCount);
+    } else if (cellCount > LARGE_PAGE_SIZE_THRESHOLD) {
+        ptr = AllocateInLargePage(cellCount);
+    } else {
+        ptr = AllocateInMediumPage(cellCount);
     }
-    if (cellCount > LARGE_PAGE_SIZE_THRESHOLD) {
-        return AllocateInLargePage(cellCount);
-    }
-    return AllocateInMediumPage(cellCount);
+    memset(ptr, 0, size);
+    return ptr;
 }
 
 void* CustomAllocator::AllocateInLargePage(uint64_t cellCount) noexcept {

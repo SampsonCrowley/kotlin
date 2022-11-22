@@ -99,7 +99,7 @@ public:
 #else
         Allocator CreateAllocator() noexcept { 
             RuntimeLogInfo({"ca"}, "ThreadData::CreateAllocator()");
-            return Allocator(alloc::CustomAllocator(gc_.heap_), *this); 
+            return Allocator(alloc::CustomAllocator(gc_.heap_, gcScheduler_), *this);
         }
 #endif
 

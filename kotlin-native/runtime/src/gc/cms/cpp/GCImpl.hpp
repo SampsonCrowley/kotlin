@@ -40,7 +40,7 @@ public:
 #ifndef CUSTOM_ALLOCATOR
         objectFactoryThreadQueue_(gc.impl_->objectFactory(), gc_.CreateAllocator()) {}
 #else
-        alloc_(gc.impl_->gc().heap()) {}
+        alloc_(gc.impl_->gc().heap(), gcScheduler_) {}
 #endif
 
     GCSchedulerThreadData& gcScheduler() noexcept { return gcScheduler_; }
