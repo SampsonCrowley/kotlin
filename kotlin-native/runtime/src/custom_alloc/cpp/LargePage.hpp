@@ -19,7 +19,8 @@ class alignas(8) LargePage {
 public:
     static LargePage* Create(uint64_t cellCount) noexcept {
         CustomAllocInfo("LargePage::Create(%" PRIu64 ")", cellCount);
-        RuntimeAssert(cellCount > LARGE_PAGE_SIZE_THRESHOLD, "blockSize too small for large page");
+        RuntimeAssert(cellCount > LARGE_PAGE_SIZE_THRESHOLD,
+                "blockSize too small for large page");
         uint64_t size = sizeof(LargePage) + cellCount * sizeof(uint64_t);
         return new (alloc(size)) LargePage();
     }
@@ -36,7 +37,7 @@ private:
     LargePage* next_;
 };
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

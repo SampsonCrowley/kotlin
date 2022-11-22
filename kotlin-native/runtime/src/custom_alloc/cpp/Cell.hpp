@@ -12,7 +12,7 @@ namespace alloc {
 // All allocations are whole units of cells.
 class Cell {
 public:
-    Cell(uint32_t size) noexcept;
+    explicit Cell(uint32_t size) noexcept;
 
     // Allocate `cellsNeeded` blocks at the end of this block, possibly the
     // whole block, or null if it doesn't fit.
@@ -39,7 +39,7 @@ private:
 
 static_assert(sizeof(Cell) == 8, "Cell size is wrong");
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

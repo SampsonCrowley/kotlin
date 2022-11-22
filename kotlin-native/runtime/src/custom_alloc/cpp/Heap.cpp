@@ -54,5 +54,5 @@ LargePage* Heap::GetLargePage(uint64_t cellCount) noexcept {
     CustomAllocInfo("CustomAllocator::AllocateInLargePage(%" PRIu64 ")", cellCount);
     return largePages_.NewPage(cellCount);
 }
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin

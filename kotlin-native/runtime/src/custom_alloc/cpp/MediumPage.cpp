@@ -3,6 +3,7 @@
 #include "MediumPage.hpp"
 
 #include <atomic>
+#include <cstdint>
 
 #include "CustomLogging.hpp"
 #include "GCApi.hpp"
@@ -10,9 +11,10 @@
 namespace kotlin {
 namespace alloc {
 
-Cell* MediumPage::TryAllocate(uint32_t cellsNeeded) noexcept {
-    CustomAllocDebug("MediumPage@%p::TryAllocate(%u)", this, cellsNeeded);
-    RuntimeAssert(cellsNeeded > 0, "Can only allocate a positive number of cells");
+Cell* MediumPage::TryAllocate(uint32_t blockSize) noexcept {
+    CustomAllocDebug("MediumPage@%p::TryAllocate(%u)", this, blockSize);
+    // +1 accounts for header, since cell->size also includes header cell
+    uint32_t cellsNeeded = blockSize + 1;
     Cell* block = curBlock_->TryAllocate(cellsNeeded);
     if (block) return block;
     UpdateCurBlock(cellsNeeded);
@@ -70,5 +72,5 @@ void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
     curBlock_ = maxBlock;
 }
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin

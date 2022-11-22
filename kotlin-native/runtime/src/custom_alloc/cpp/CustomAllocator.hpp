@@ -94,8 +94,9 @@ class CustomAllocator {
 // LargePages. As a consequence, they are only swept by the GC thread.
 
 public:
-    CustomAllocator(Heap& heap) noexcept : heap_(heap) {
+    explicit CustomAllocator(Heap& heap) noexcept : heap_(heap), mediumPage_(nullptr) {
         CustomAllocInfo("CustomAllocator::CustomAllocator(heap)");
+        memset(smallPages_, 0, sizeof(smallPages_));
     }
 
     ObjHeader* CreateObject(const TypeInfo* typeInfo) noexcept;
@@ -104,8 +105,8 @@ public:
 
     void PrepareForGC() noexcept {
         CustomAllocInfo("CustomAllocator@%p::PrepareForGC()", this);
-        mediumPage = nullptr;
-        memset(smallPages, 0, sizeof(smallPages));
+        mediumPage_ = nullptr;
+        memset(smallPages_, 0, sizeof(smallPages_));
     }
 
     static void Free(void* ptr) noexcept {
@@ -130,11 +131,11 @@ private:
     void* AllocateInSmallPage(uint32_t cellCount) noexcept;
 
     Heap& heap_;
-    MediumPage* mediumPage = nullptr;
-    SmallPage* smallPages[SMALL_PAGE_MAX_BLOCK_SIZE+1];
+    MediumPage* mediumPage_;
+    SmallPage* smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE+1];
 };
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

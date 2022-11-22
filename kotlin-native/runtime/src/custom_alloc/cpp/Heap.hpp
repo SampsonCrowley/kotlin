@@ -34,7 +34,7 @@ private:
     PageStore<LargePage> largePages_;
 };
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

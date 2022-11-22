@@ -39,5 +39,5 @@ void Cell::Deallocate() noexcept {
     isAllocated_ = false;
 }
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin

@@ -16,8 +16,6 @@
 namespace kotlin {
 namespace alloc {
 
-/* using HeapObjHeader = mm::ObjectFactory<gc::ConcurrentMarkAndSweep>::HeapObjHeader; */
-/* using HeapArrayHeader = mm::ObjectFactory<gc::ConcurrentMarkAndSweep>::HeapArrayHeader; */
 using ObjectData = gc::ConcurrentMarkAndSweep::ObjectData;
 
 struct HeapObjHeader {
@@ -51,7 +49,6 @@ ObjHeader* CustomAllocator::CreateObject(const TypeInfo* typeInfo) noexcept {
     auto* heapObject = new (Alloc(allocSize)) HeapObjHeader();
     auto* object = &heapObject->object;
     object->typeInfoOrMeta_ = const_cast<TypeInfo*>(typeInfo);
-    // TODO: Consider supporting TF_IMMUTABLE: mark instance as frozen upon creation.
     return object;
 }
 
@@ -62,7 +59,6 @@ ArrayHeader* CustomAllocator::CreateArray(const TypeInfo* typeInfo, uint32_t cou
     auto* array = &heapArray->array;
     array->typeInfoOrMeta_ = const_cast<TypeInfo*>(typeInfo);
     array->count_ = count;
-    // TODO: Consider supporting TF_IMMUTABLE: mark instance as frozen upon creation.
     return array;
 }
 
@@ -85,23 +81,21 @@ void* CustomAllocator::AllocateInLargePage(uint64_t cellCount) noexcept {
 
 void* CustomAllocator::AllocateInMediumPage(uint32_t cellCount) noexcept {
     CustomAllocDebug("CustomAllocator::AllocateInMediumPage(%u)", cellCount);
-    // +1 accounts for header, since cell->size also includes header cell
-    ++cellCount;
-    if (mediumPage) {
-        Cell* block = mediumPage->TryAllocate(cellCount);
+    if (mediumPage_) {
+        Cell* block = mediumPage_->TryAllocate(cellCount);
         if (block) return block->Data();
     }
     CustomAllocDebug("Failed to allocate in curPage");
     while (true) {
-        mediumPage = heap_.GetMediumPage(cellCount);
-        Cell* block = mediumPage->TryAllocate(cellCount);
+        mediumPage_ = heap_.GetMediumPage(cellCount);
+        Cell* block = mediumPage_->TryAllocate(cellCount);
         if (block) return block->Data();
     }
 }
 
 void* CustomAllocator::AllocateInSmallPage(uint32_t cellCount) noexcept {
     CustomAllocDebug("CustomAllocator::AllocateInSmallPage(%u)", cellCount);
-    SmallPage* page = smallPages[cellCount];
+    SmallPage* page = smallPages_[cellCount];
     if (page) {
         SmallCell* block = page->TryAllocate();
         if (block) return block->Data();
@@ -110,12 +104,12 @@ void* CustomAllocator::AllocateInSmallPage(uint32_t cellCount) noexcept {
     while ((page = heap_.GetSmallPage(cellCount))) {
         SmallCell* block = page->TryAllocate();
         if (block) {
-            smallPages[cellCount] = page;
+            smallPages_[cellCount] = page;
             return block->Data();
         }
     }
     return nullptr;
 }
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin

@@ -35,7 +35,7 @@ public:
     }
 
     void Sweep() noexcept {
-        while (SweepAndFreeEmpty(unswept_, ready_));
+        while (SweepAndFreeEmpty(unswept_, ready_)) {}
     }
 
     T* GetPage(uint32_t cellCount) noexcept {
@@ -67,7 +67,7 @@ private:
     AtomicStack<T> unswept_;
 };
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

@@ -7,7 +7,6 @@
 #include <cstdint>
 
 #include "AtomicStack.hpp"
-#include "GCApi.hpp"
 
 namespace kotlin {
 namespace alloc {
@@ -15,7 +14,7 @@ namespace alloc {
 #define KiB 1024
 #define SMALL_PAGE_SIZE (256*KiB)
 #define SMALL_PAGE_MAX_BLOCK_SIZE 128
-#define SMALL_PAGE_CELL_COUNT ((SMALL_PAGE_SIZE-sizeof(SmallPage))/sizeof(SmallCell))
+#define SMALL_PAGE_CELL_COUNT ((SMALL_PAGE_SIZE-sizeof(kotlin::alloc::SmallPage))/sizeof(kotlin::alloc::SmallCell))
 
 struct alignas(8) SmallCell {
     void* Data() { return this; }
@@ -25,13 +24,7 @@ struct alignas(8) SmallCell {
 
 class alignas(8) SmallPage {
 public:
-    SmallPage(uint32_t blockSize) noexcept;
-
-    static SmallPage* Create(uint32_t blockSize) noexcept {
-        CustomAllocInfo("SmallPage::Create(%u)", blockSize);
-        RuntimeAssert(blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE, "blockSize too large for small page");
-        return new (alloc(SMALL_PAGE_SIZE)) SmallPage(blockSize);
-    }
+    static SmallPage* Create(uint32_t blockSize) noexcept;
 
     // Tries to allocate in current page, returns null if no free block in page
     SmallCell* TryAllocate() noexcept;
@@ -40,6 +33,8 @@ public:
 
 private:
     friend class AtomicStack<SmallPage>;
+
+    SmallPage(uint32_t blockSize) noexcept;
 
     // Used for linking pages together in `pages` queue or in `unswept` queue.
     SmallPage* next_;
@@ -50,7 +45,7 @@ private:
 
 static_assert(sizeof(SmallPage) % 8 == 0, "Page header size is not aligned");
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

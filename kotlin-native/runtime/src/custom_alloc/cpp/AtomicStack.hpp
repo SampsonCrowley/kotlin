@@ -13,20 +13,27 @@ namespace alloc {
 template<class T>
 class AtomicStack {
 public:
+    ~AtomicStack() noexcept {
+        CustomAllocDebug("AtomicStack(%p)::~AtomicStack()", this);
+        T* page;
+        while ((page = Pop())) {
+            CustomAllocDebug("AtomicStack(%p) free(%p)", this, page);
+            free(page);
+        }
+    }
+
     T* Pop() noexcept {
         T* elm = stack_.load(std::memory_order_acquire);
         while (elm && !stack_.compare_exchange_weak(elm, elm->next_,
-                    std::memory_order_acq_rel));
+                    std::memory_order_acq_rel)) {}
         CustomAllocDebug("AtomicStack(%p)::Pop() = %p", this, elm);
         return elm;
     }
 
     void Push(T* elm) noexcept {
-        CustomAllocDebug("AtomicStack(%p)::Push(%p)", this, elm);
         T* head = nullptr;
         do {
             elm->next_ = head;
-
         } while (!stack_.compare_exchange_weak(head, elm,
                     std::memory_order_acq_rel));
     }
@@ -45,10 +52,10 @@ public:
     }
 
 private:
-    std::atomic<T*> stack_;
+    std::atomic<T*> stack_{nullptr};
 };
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
 
 #endif

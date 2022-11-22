@@ -12,6 +12,12 @@
 namespace kotlin {
 namespace alloc {
 
+SmallPage* SmallPage::Create(uint32_t blockSize) noexcept {
+    CustomAllocInfo("SmallPage::Create(%u)", blockSize);
+    RuntimeAssert(blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE, "blockSize too large for small page");
+    return new (alloc(SMALL_PAGE_SIZE)) SmallPage(blockSize);
+}
+
 SmallPage::SmallPage(uint32_t blockSize) noexcept : blockSize_(blockSize) {
     CustomAllocInfo("SmallPage(%p)::SmallPage(%u)", this, blockSize);
     nextFree_ = cells_;
@@ -58,5 +64,5 @@ bool SmallPage::Sweep() noexcept {
     return alive;
 }
 
-} // namespace alloc
-} // namespace kotlin
+}  // namespace alloc
+}  // namespace kotlin
