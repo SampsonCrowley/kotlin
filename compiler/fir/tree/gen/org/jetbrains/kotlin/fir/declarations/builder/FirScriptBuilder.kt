@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.declarations.FirDeclarationAttributes
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.declarations.FirScript
+import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.impl.FirScriptImpl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirStatement
@@ -40,6 +41,7 @@ class FirScriptBuilder : FirAnnotationContainerBuilder {
     lateinit var name: Name
     val statements: MutableList<FirStatement> = mutableListOf()
     lateinit var symbol: FirScriptSymbol
+    val valueParameters: MutableList<FirValueParameter> = mutableListOf()
     val contextReceivers: MutableList<FirContextReceiver> = mutableListOf()
 
     override fun build(): FirScript {
@@ -53,6 +55,7 @@ class FirScriptBuilder : FirAnnotationContainerBuilder {
             name,
             statements,
             symbol,
+            valueParameters,
             contextReceivers,
         )
     }

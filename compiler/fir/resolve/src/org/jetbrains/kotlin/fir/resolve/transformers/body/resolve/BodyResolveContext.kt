@@ -503,8 +503,13 @@ class BodyResolveContext(
         val statics = base
             .addNonLocalScopeIfNotNull(towerElementsForScript.staticScope)
 
+        val parameterScope = owner.valueParameters.fold(FirLocalScope(holder.session)) { scope, parameter ->
+            scope.storeVariable(parameter, holder.session)
+        }
+
         val forMembersResolution =
             statics
+                .addLocalScope(parameterScope)
                 .addContextReceiverGroup(towerElementsForScript.implicitReceivers)
 
         val newContexts = FirRegularTowerDataContexts(

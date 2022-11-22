@@ -455,6 +455,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             +name
             +fieldList(statement).withTransform()
             +symbol("FirScriptSymbol")
+            +fieldList(valueParameter)
             +fieldList(contextReceiver)
         }
 
