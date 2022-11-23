@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrScriptImpl
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.util.constructors
@@ -197,7 +198,12 @@ class Fir2IrVisitor(
     override fun visitScript(script: FirScript, data: Any?): IrElement {
         return declarationStorage.getCachedIrScript(script)!!.also { irScript ->
             irScript.parent = conversionScope.parentFromStack()
-            symbolTable.enterScope(irScript)
+            declarationStorage.enterScope(irScript)
+            irScript.explicitCallParameters = script.valueParameters.map { valueParameter ->
+                declarationStorage.createIrParameter(valueParameter).apply {
+                    this.parent = irScript
+                }
+            }
             conversionScope.withParent(irScript) {
                 for (statement in script.statements) {
                     if (statement is FirDeclaration) {
@@ -209,7 +215,7 @@ class Fir2IrVisitor(
                     }
                 }
             }
-            symbolTable.leaveScope(irScript)
+            declarationStorage.leaveScope(irScript)
         }
     }
 
