@@ -767,7 +767,7 @@ class Fir2IrDeclarationStorage(
                 name, inferredType,
                 visibility, isFinal = isFinal,
                 isExternal = property.isExternal,
-                isStatic = property.isStatic || parent !is IrClass,
+                isStatic = property.isStatic || !(parent is IrClass || parent is IrScript),
             ).also {
                 it.correspondingPropertySymbol = this@createBackingField.symbol
             }.apply {
