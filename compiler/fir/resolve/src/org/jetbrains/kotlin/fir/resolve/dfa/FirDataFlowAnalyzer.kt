@@ -219,22 +219,15 @@ abstract class FirDataFlowAnalyzer(
             exitCapturingStatement(anonymousFunction)
         }
         functionExitNode.mergeIncomingFlow()
-        if (postponedLambdaExitNode != null) {
-            // Data flow changed, need to recompute. TODO: this violates the "flow computed only once" principle.
-            postponedLambdaExitNode.mergeIncomingFlow()
-        } else {
-            // The current node should be `postponedLambdaExitNode` but we don't get a reference to it.
-            resetReceivers()
-        }
+        postponedLambdaExitNode?.mergeIncomingFlow()
+        resetReceivers() // roll back to state before function
         return FirControlFlowGraphReferenceImpl(graph)
     }
 
     fun visitPostponedAnonymousFunction(anonymousFunctionExpression: FirAnonymousFunctionExpression) {
         val anonymousFunction = anonymousFunctionExpression.anonymousFunction
         getOrCreateLocalVariableAssignmentAnalyzer(anonymousFunction)?.visitPostponedAnonymousFunction(anonymousFunction)
-        val (enterNode, exitNode) = graphBuilder.visitPostponedAnonymousFunction(anonymousFunctionExpression)
-        enterNode.mergeIncomingFlow()
-        exitNode.mergeIncomingFlow()
+        graphBuilder.visitPostponedAnonymousFunction(anonymousFunctionExpression).mergeIncomingFlow()
     }
 
     fun exitAnonymousFunctionExpression(anonymousFunctionExpression: FirAnonymousFunctionExpression) {
@@ -624,11 +617,9 @@ abstract class FirDataFlowAnalyzer(
     }
 
     fun exitWhenExpression(whenExpression: FirWhenExpression, callCompleted: Boolean) {
-        val (whenExitNode, syntheticElseNode, mergePostponedLambdaExitsNode) =
-            graphBuilder.exitWhenExpression(whenExpression, callCompleted)
+        val (whenExitNode, syntheticElseNode) = graphBuilder.exitWhenExpression(whenExpression, callCompleted)
         syntheticElseNode?.mergeWhenBranchEntryFlow()
         whenExitNode.mergeIncomingFlow()
-        mergePostponedLambdaExitsNode?.mergeIncomingFlow()
     }
 
     fun exitWhenSubjectExpression(expression: FirWhenSubjectExpression) {
@@ -769,9 +760,7 @@ abstract class FirDataFlowAnalyzer(
     }
 
     fun exitTryExpression(callCompleted: Boolean) {
-        val (tryExpressionExitNode, mergePostponedLambdaExitsNode) = graphBuilder.exitTryExpression(callCompleted)
-        tryExpressionExitNode.mergeIncomingFlow()
-        mergePostponedLambdaExitsNode?.mergeIncomingFlow()
+        graphBuilder.exitTryExpression(callCompleted).mergeIncomingFlow()
     }
 
     // ----------------------------------- Resolvable call -----------------------------------
@@ -797,7 +786,7 @@ abstract class FirDataFlowAnalyzer(
     }
 
     fun exitSafeCall(safeCall: FirSafeCallExpression) {
-        val (node, mergePostponedLambdaExitsNode) = graphBuilder.exitSafeCall()
+        val node = graphBuilder.exitSafeCall()
         node.mergeIncomingFlow { flow ->
             // If there is only 1 previous node, then this is LHS of `a?.b ?: c`; then the null-case
             // edge from `a` goes directly to `c` and this node's flow already assumes `b` executed.
@@ -811,7 +800,6 @@ abstract class FirDataFlowAnalyzer(
             //  (that requires a second level of implications: receiver != null => condition => effect).
             flow.addAllConditionally(expressionVariable notEq null, node.lastPreviousNode.flow)
         }
-        mergePostponedLambdaExitsNode?.mergeIncomingFlow()
     }
 
     fun exitResolvedQualifierNode(resolvedQualifier: FirResolvedQualifier) {
@@ -1170,7 +1158,7 @@ abstract class FirDataFlowAnalyzer(
     }
 
     fun exitElvis(elvisExpression: FirElvisExpression, isLhsNotNull: Boolean, callCompleted: Boolean) {
-        val (node, mergePostponedLambdaExitsNode) = graphBuilder.exitElvis(isLhsNotNull, callCompleted)
+        val node = graphBuilder.exitElvis(isLhsNotNull, callCompleted)
         node.mergeIncomingFlow { flow ->
             // If LHS is never null, then the edge from RHS is dead and this node's flow already contains
             // all statements from LHS unconditionally.
@@ -1181,7 +1169,6 @@ abstract class FirDataFlowAnalyzer(
             val elvisVariable = variableStorage.createSynthetic(elvisExpression)
             flow.addAllConditionally(elvisVariable eq !rhs, node.firstPreviousNode.flow)
         }
-        mergePostponedLambdaExitsNode?.mergeIncomingFlow()
     }
 
     // Callable reference
@@ -1221,7 +1208,10 @@ abstract class FirDataFlowAnalyzer(
     private fun CFGNode<*>.buildIncomingFlow(): MutableFlow {
         val previousFlows = previousNodes.mapNotNull {
             val incomingEdgeKind = incomingEdges.getValue(it).kind
-            it.takeIf { incomingEdgeKind.usedInDfa || (isDead && incomingEdgeKind.usedInDeadDfa) }?.flow
+            if (if (isDead) !incomingEdgeKind.usedInDeadDfa else !incomingEdgeKind.usedInDfa) return@mapNotNull null
+            // `MergePostponedLambdaExitsNode` nodes form a parallel data flow graph. We never compute
+            // data flow for any of them until reaching a completed call.
+            if (it is MergePostponedLambdaExitsNode) it.mergeIncomingFlow() else it.flow
         }
         val result = logicSystem.joinFlow(previousFlows, union = this is UnionNodeMarker)
         if (graphBuilder.lastNodeOrNull == this) {
