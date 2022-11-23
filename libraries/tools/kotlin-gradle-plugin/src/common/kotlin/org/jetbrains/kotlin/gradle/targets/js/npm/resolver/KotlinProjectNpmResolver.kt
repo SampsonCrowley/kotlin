@@ -28,10 +28,10 @@ import kotlin.reflect.KClass
  */
 internal class KotlinProjectNpmResolver(
     project: Project,
-    @Transient
+//    @Transient
     var resolver: KotlinRootNpmResolver
 ) : Serializable {
-    private val projectPath by lazy { project.path }
+    val projectPath by lazy { project.path }
 
     private val byCompilation = mutableMapOf<String, KotlinCompilationNpmResolver>()
 

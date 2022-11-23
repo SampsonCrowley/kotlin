@@ -30,7 +30,7 @@ open class KotlinNpmInstallTask : DefaultTask() {
 
     @Transient
     private val nodeJs: NodeJsRootExtension? = project.rootProject.kotlinNodeJsExtension
-    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager
+    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
 
     @Input
     val args: MutableList<String> = mutableListOf()

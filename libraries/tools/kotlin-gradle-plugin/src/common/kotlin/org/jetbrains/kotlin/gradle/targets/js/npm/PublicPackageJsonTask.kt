@@ -28,7 +28,7 @@ constructor(
 
     @Transient
     private val nodeJs = npmProject.nodeJs
-    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager
+    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
 
     private val compilationName = compilation.disambiguatedName
     private val projectPath = project.path

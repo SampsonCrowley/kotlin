@@ -44,7 +44,7 @@ import java.io.Serializable
  * See [KotlinNpmResolutionManager] for details about resolution process.
  */
 internal class KotlinCompilationNpmResolver(
-    @Transient
+//    @Transient
     val projectResolver: KotlinProjectNpmResolver,
     @Transient
     val compilation: KotlinJsCompilation
@@ -55,6 +55,10 @@ internal class KotlinCompilationNpmResolver(
     val npmProject = compilation.npmProject
 
     val compilationDisambiguatedName = compilation.disambiguatedName
+
+    val packageJsonHandlers by lazy {
+        compilation.packageJsonHandlers
+    }
 
     val npmVersion by lazy {
         project.version.toString()
@@ -93,23 +97,18 @@ internal class KotlinCompilationNpmResolver(
 
     override fun toString(): String = "KotlinCompilationNpmResolver(${npmProject.name})"
 
-    @delegate:Transient
-    private val aggregatedConfiguration: Configuration by lazy {
-        createAggregatedConfiguration()
-    }
-
-    private val packageJsonProducer_: PackageJsonProducer by lazy {
+    val packageJsonProducer: PackageJsonProducer by lazy {
         val visitor = ConfigurationVisitor()
-        visitor.visit(aggregatedConfiguration)
-        visitor.toPackageJsonProducer().also { it.compilationResolver = this }
+        visitor.visit(createAggregatedConfiguration())
+        visitor.toPackageJsonProducer()/*.also { it.compilationResolver = this }*/
     }
 
-    val packageJsonProducer: PackageJsonProducer
-        get() {
-            val packageJsonProducer = packageJsonProducer_
-            packageJsonProducer.compilationResolver = this
-            return packageJsonProducer
-        }
+//    val packageJsonProducer: PackageJsonProducer
+//        get() {
+//            val packageJsonProducer = packageJsonProducer_
+//            packageJsonProducer.compilationResolver = this
+//            return packageJsonProducer
+//        }
 
     private var closed = false
     private var resolution: KotlinCompilationNpmResolution? = null
@@ -166,7 +165,7 @@ internal class KotlinCompilationNpmResolver(
         }
 
         // We don't have `kotlin-js-test-runner` in NPM yet
-        all.dependencies.add(nodeJs_.versions.kotlinJsTestRunner.createDependency(project))
+        all.dependencies.add(nodeJs_.get().versions.kotlinJsTestRunner.createDependency(project))
 
         return all
     }
@@ -232,7 +231,7 @@ internal class KotlinCompilationNpmResolver(
                 val main = compilation.target.compilations.findByName(KotlinCompilation.MAIN_COMPILATION_NAME) as KotlinJsCompilation
                 internalDependencies.add(
                     InternalDependency(
-                        projectResolver.project.path,
+                        projectResolver.projectPath,
                         main.disambiguatedName,
                         projectResolver[main].npmProject.name
                     )
@@ -341,6 +340,7 @@ internal class KotlinCompilationNpmResolver(
             externalNpmDependencies,
             fileCollectionDependencies,
             projectPath,
+            this@KotlinCompilationNpmResolver
         )
     }
 
@@ -376,12 +376,13 @@ internal class KotlinCompilationNpmResolver(
         var externalNpmDependencies: Collection<NpmDependencyDeclaration>,
         var fileCollectionDependencies: Collection<FileCollectionExternalGradleDependency>,
         val projectPath: String,
+        val compilationResolver: KotlinCompilationNpmResolver
     ) : Serializable {
-        private val projectPackagesDir by lazy { compilationResolver.nodeJs_.projectPackagesDir }
-        private val rootDir by lazy { compilationResolver.nodeJs_.rootProjectDir }
+        private val projectPackagesDir by lazy { compilationResolver.nodeJs_.get().projectPackagesDir }
+        private val rootDir by lazy { compilationResolver.nodeJs_.get().rootProjectDir }
 
-        @Transient
-        internal lateinit var compilationResolver: KotlinCompilationNpmResolver
+//        @Transient
+//        internal lateinit var compilationResolver: KotlinCompilationNpmResolver
 
         val inputs: PackageJsonProducerInputs
             get() = PackageJsonProducerInputs(
@@ -426,16 +427,16 @@ internal class KotlinCompilationNpmResolver(
                     }
             }.filterNotNull()
 
-            val toolsNpmDependencies = compilationResolver.rootResolver.taskRequirements
+            val toolsNpmDependencies = compilationResolver.rootResolver.taskRequirements.get()
                 .getCompilationNpmRequirements(projectPath, compilationResolver.compilationDisambiguatedName)
 
             val otherNpmDependencies = toolsNpmDependencies + transitiveNpmDependencies
             val allNpmDependencies = disambiguateDependencies(externalNpmDependencies, otherNpmDependencies)
-            val packageJsonHandlers = if (compilationResolver.compilation != null) {
+            val packageJsonHandlers = compilationResolver.packageJsonHandlers /*if (compilationResolver.compilation != null) {
                 compilationResolver.compilation.packageJsonHandlers
             } else {
                 compilationResolver.rootResolver.getPackageJsonHandlers(projectPath, compilationResolver.compilationDisambiguatedName)
-            }
+            }*/
 
             val packageJson = packageJson(
                 compilationResolver.npmProject.name,

@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 class NpmResolverPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val nodeJs = NodeJsRootPlugin.apply(project.rootProject)
-        project.rootProject.kotlinNpmResolutionManager.requireConfiguringState().addProject(project)
+        project.rootProject.kotlinNpmResolutionManager.get().requireConfiguringState().addProject(project)
         val kotlinNodeJsTaskProvidersExtension = project.rootProject.kotlinNodeJsTaskProvidersExtension
         project.whenEvaluated {
             project.tasks.implementing(RequiresNpmDependencies::class)

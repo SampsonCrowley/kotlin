@@ -157,7 +157,9 @@ open class NodeJsRootPlugin : Plugin<Project> {
         val Project.kotlinNodeJsTaskProvidersExtension: NodeJsTaskProviders
             get() = extensions.getByName(NodeJsTaskProviders.EXTENSION_NAME).castIsolatedKotlinPluginClassLoaderAware()
 
-        val Project.kotlinNpmResolutionManager: KotlinNpmResolutionManager
-            get() = extensions.getByName(NodeJsRootExtension.EXTENSION_NAME_2).castIsolatedKotlinPluginClassLoaderAware()
+        val Project.kotlinNpmResolutionManager: Provider<KotlinNpmResolutionManager>
+            get() = gradle.sharedServices.registerIfAbsent("kotlin-npm-resolution-manager", KotlinNpmResolutionManager::class.java) {
+                error("Gradle service should be already registered")
+            }
     }
 }

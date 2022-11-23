@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.gradle.targets.js.npm.resolver
 
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -196,8 +197,8 @@ class KotlinRootNpmResolver internal constructor(
     val compilations: Collection<KotlinJsCompilation>
         get() = projectResolvers.values.flatMap { it.compilationResolvers.map { it.compilation } }
 
-    internal fun getPackageJsonHandlers(projectPath: String, compilationDisambiguatedName: String): List<PackageJson.() -> Unit> =
-        resolverStateHolder.get().parameters.packageJsonHandlers.get()["$projectPath:$compilationDisambiguatedName"] ?: emptyList()
+//    internal fun getPackageJsonHandlers(projectPath: String, compilationDisambiguatedName: String): List<PackageJson.() -> Unit> =
+//        resolverStateHolder.get().parameters.packageJsonHandlers.get()["$projectPath:$compilationDisambiguatedName"] ?: emptyList()
 
     internal fun findDependentResolver(src: Project, target: Project): List<KotlinCompilationNpmResolver>? {
         // todo: proper finding using KotlinTargetComponent.findUsageContext

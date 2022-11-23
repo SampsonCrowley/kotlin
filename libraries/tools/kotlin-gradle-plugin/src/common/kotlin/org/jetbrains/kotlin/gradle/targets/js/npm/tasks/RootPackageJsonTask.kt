@@ -25,7 +25,7 @@ open class RootPackageJsonTask : DefaultTask() {
 
     @Transient
     private val nodeJs = project.rootProject.kotlinNodeJsExtension
-    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager
+    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
 
     @get:OutputFile
     val rootPackageJson: File by lazy {
