@@ -117,6 +117,9 @@ abstract class PersistentLogicSystem(context: ConeInferenceContext) : LogicSyste
         }
 
         val commonFlow = flows.reduce { a, b ->
+            // If you're debugging this assertion error, most likely cause is that a node is not
+            // marked as dead when all its input edges are dead. In that case it will have an empty flow,
+            // and joining that with a non-empty flow from another branch will fail.
             a.lowestCommonAncestor(b) ?: throw AssertionError("no common ancestor in $a, $b")
         }
         val result = commonFlow.fork()
