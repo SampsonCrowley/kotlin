@@ -16,7 +16,7 @@ import java.io.File
 import java.io.Serializable
 
 open class NodeJsRootExtension(
-    private val logger: Logger,
+    logger: Logger,
     gradleUserHomeDir: File,
     val rootProjectDir: File,
     rootProjectBuildDir: File,
@@ -79,7 +79,8 @@ open class NodeJsRootExtension(
             platformName = platform,
             architectureName = architecture,
             ivyDependency = getIvyDependency(),
-            downloadBaseUrl = nodeDownloadBaseUrl
+            downloadBaseUrl = nodeDownloadBaseUrl,
+            packageManager = packageManager
         )
     }
 

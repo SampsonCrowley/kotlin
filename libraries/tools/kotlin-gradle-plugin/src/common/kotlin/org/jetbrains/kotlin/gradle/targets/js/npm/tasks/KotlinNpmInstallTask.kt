@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.asNpmEnvironment
+import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 import org.jetbrains.kotlin.gradle.utils.unavailableValueError
 import java.io.File
 
@@ -31,6 +32,16 @@ open class KotlinNpmInstallTask : DefaultTask() {
     @Transient
     private val nodeJs: NodeJsRootExtension? = project.rootProject.kotlinNodeJsExtension
     private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
+    @Transient
+    private val yarn = project.rootProject.yarn
+
+    val npmEnvironment by lazy {
+        nodeJs!!.asNpmEnvironment
+    }
+
+    val yarnEnv by lazy {
+        yarn.requireConfigured()
+    }
 
     @Input
     val args: MutableList<String> = mutableListOf()
@@ -75,7 +86,9 @@ open class KotlinNpmInstallTask : DefaultTask() {
         resolutionManager.installIfNeeded(
             args = args,
             services = services,
-            logger = logger
+            logger = logger,
+            npmEnvironment,
+            yarnEnv
         ) ?: throw (resolutionManager.state as KotlinNpmResolutionManager.ResolutionState.Error).wrappedException
     }
 

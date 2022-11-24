@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.gradle.plugin.sources.KotlinDependencyScope
 import org.jetbrains.kotlin.gradle.plugin.sources.compilationDependencyConfigurationByScope
 import org.jetbrains.kotlin.gradle.plugin.sources.sourceSetDependencyConfigurationByScope
 import org.jetbrains.kotlin.gradle.plugin.usesPlatformOf
+import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.npm.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject.Companion.PACKAGE_JSON
@@ -64,8 +65,8 @@ internal class KotlinCompilationNpmResolver(
         project.version.toString()
     }
 
-    val nodeJs get() = rootResolver.nodeJs
-    private val nodeJs_ get() = nodeJs ?: unavailableValueError("nodeJs")
+//    val nodeJs get() = rootResolver.nodeJs
+//    private val nodeJs_ get() = nodeJs ?: unavailableValueError("nodeJs")
 
     val target get() = compilation.target
 
@@ -165,7 +166,7 @@ internal class KotlinCompilationNpmResolver(
         }
 
         // We don't have `kotlin-js-test-runner` in NPM yet
-        all.dependencies.add(nodeJs_.get().versions.kotlinJsTestRunner.createDependency(project))
+        all.dependencies.add(rootResolver.versions.get().kotlinJsTestRunner.createDependency(project))
 
         return all
     }
@@ -378,8 +379,8 @@ internal class KotlinCompilationNpmResolver(
         val projectPath: String,
         val compilationResolver: KotlinCompilationNpmResolver
     ) : Serializable {
-        private val projectPackagesDir by lazy { compilationResolver.nodeJs_.get().projectPackagesDir }
-        private val rootDir by lazy { compilationResolver.nodeJs_.get().rootProjectDir }
+        private val projectPackagesDir by lazy { compilationResolver.rootResolver.projectPackagesDir.get() }
+        private val rootDir by lazy { compilationResolver.rootResolver.rootProjectDir.get() }
 
 //        @Transient
 //        internal lateinit var compilationResolver: KotlinCompilationNpmResolver
@@ -427,7 +428,7 @@ internal class KotlinCompilationNpmResolver(
                     }
             }.filterNotNull()
 
-            val toolsNpmDependencies = compilationResolver.rootResolver.taskRequirements.get()
+            val toolsNpmDependencies = compilationResolver.rootResolver.tasksRequirements.get()
                 .getCompilationNpmRequirements(projectPath, compilationResolver.compilationDisambiguatedName)
 
             val otherNpmDependencies = toolsNpmDependencies + transitiveNpmDependencies

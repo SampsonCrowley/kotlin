@@ -12,6 +12,8 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject
+import org.jetbrains.kotlin.gradle.targets.js.npm.asNpmEnvironment
+import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 import java.io.File
 
 open class RootPackageJsonTask : DefaultTask() {
@@ -25,7 +27,16 @@ open class RootPackageJsonTask : DefaultTask() {
 
     @Transient
     private val nodeJs = project.rootProject.kotlinNodeJsExtension
+    @Transient
+    private val yarn = project.rootProject.yarn
     private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
+    val npmEnvironment by lazy {
+        nodeJs.asNpmEnvironment
+    }
+
+    val yarnEnv by lazy {
+        yarn.requireConfigured()
+    }
 
     @get:OutputFile
     val rootPackageJson: File by lazy {
@@ -42,7 +53,7 @@ open class RootPackageJsonTask : DefaultTask() {
 
     @TaskAction
     fun resolve() {
-        resolutionManager.prepare(logger)
+        resolutionManager.prepare(logger, npmEnvironment, yarnEnv)
     }
 
     companion object {

@@ -14,12 +14,8 @@ import org.jetbrains.kotlin.gradle.dsl.kotlinExtensionOrNull
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
-import org.jetbrains.kotlin.gradle.plugin.whenEvaluated
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
-import org.jetbrains.kotlin.gradle.targets.js.npm.RequiresNpmDependencies
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResolution
-import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
-import org.jetbrains.kotlin.gradle.utils.unavailableValueError
 import java.io.Serializable
 import kotlin.reflect.KClass
 
@@ -69,7 +65,8 @@ internal class KotlinProjectNpmResolver(
         check(!closed) { resolver.alreadyResolvedMessage("add target $target") }
 
         if (target.platformType == KotlinPlatformType.js ||
-            target.platformType == KotlinPlatformType.wasm) {
+            target.platformType == KotlinPlatformType.wasm
+        ) {
             target.compilations.all { compilation ->
                 if (compilation is KotlinJsCompilation) {
                     // compilation may be KotlinWithJavaTarget for old Kotlin2JsPlugin
@@ -92,7 +89,11 @@ internal class KotlinProjectNpmResolver(
     private fun addCompilation(compilation: KotlinJsCompilation) {
         check(!closed) { resolver.alreadyResolvedMessage("add compilation $compilation") }
 
-        byCompilation[compilation.disambiguatedName] = KotlinCompilationNpmResolver(this, compilation)
+        byCompilation[compilation.disambiguatedName] =
+            KotlinCompilationNpmResolver(
+                this,
+                compilation
+            )
     }
 
     fun close(): KotlinProjectNpmResolution {
@@ -102,7 +103,7 @@ internal class KotlinProjectNpmResolver(
         return KotlinProjectNpmResolution(
             projectPath,
             byCompilation.values.mapNotNull { it.close() },
-            resolver.taskRequirements.get().byTask
+            resolver.tasksRequirements.get().byTask
         )
     }
 }

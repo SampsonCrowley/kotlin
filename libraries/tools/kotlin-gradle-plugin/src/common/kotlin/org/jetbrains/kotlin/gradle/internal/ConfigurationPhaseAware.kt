@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.internal
 
+import java.io.Serializable
 import kotlin.reflect.KProperty
 
 abstract class ConfigurationPhaseAware<C : Any> {
@@ -24,7 +25,7 @@ abstract class ConfigurationPhaseAware<C : Any> {
         check(configured == null) { "Configuration already finalized for previous property values" }
     }
 
-    inner class Property<T>(var value: T) {
+    inner class Property<T>(var value: T) : Serializable {
         operator fun getValue(receiver: Any, property: KProperty<*>): T = value
 
         operator fun setValue(receiver: Any, property: KProperty<*>, value: T) {

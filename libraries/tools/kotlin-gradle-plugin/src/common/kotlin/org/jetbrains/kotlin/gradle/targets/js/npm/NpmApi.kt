@@ -52,12 +52,14 @@ interface NpmApi : Serializable {
 data class NpmEnvironment(
     val rootPackageDir: File,
     val nodeExecutable: String,
-    val isWindows: Boolean
+    val isWindows: Boolean,
+    val packageManager: NpmApi
 ) : Serializable
 
 internal val NodeJsRootExtension.asNpmEnvironment
     get() = NpmEnvironment(
         rootPackageDir,
         requireConfigured().nodeExecutable,
-        requireConfigured().isWindows
+        requireConfigured().isWindows,
+        requireConfigured().packageManager
     )

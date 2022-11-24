@@ -14,6 +14,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
+import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
@@ -25,6 +26,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnResolution
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.toVersionString
 import org.jetbrains.kotlin.gradle.utils.unavailableValueError
+import java.io.File
 
 /**
  * See [KotlinNpmResolutionManager] for details about resolution process.
@@ -36,9 +38,13 @@ import org.jetbrains.kotlin.gradle.utils.unavailableValueError
 class KotlinRootNpmResolver internal constructor(
     val rootProjectName: Provider<String>,
     val rootProjectVersion: Provider<String>,
+    val tasksRequirements: Provider<TasksRequirements>,
+    val versions: Provider<NpmVersions>,
+    val projectPackagesDir: Provider<File>,
+    val rootProjectDir: Provider<File>,
 //    @Transient
-    val nodeJs: Provider<NodeJsRootExtension>,
-    val yarn: Provider<YarnRootExtension>,
+//    val nodeJs: Provider<NodeJsRootExtension>,
+//    val yarn: Provider<YarnRootExtension>,
 //    @Transient
 //    val buildServiceRegistry: BuildServiceRegistry,
     val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
@@ -126,8 +132,8 @@ class KotlinRootNpmResolver internal constructor(
 //    }
 
 //    @Transient
-    private val taskRequirements_
-        get() = nodeJs.map { it.taskRequirements }
+//    private val taskRequirements_
+//        get() = nodeJs.map { it.taskRequirements }
 
 //    private val resolverStateHolder by lazy {
 //        buildServiceRegistry.registerIfAbsent(
@@ -164,20 +170,20 @@ class KotlinRootNpmResolver internal constructor(
     private val projectResolvers
         get() = projectResolvers_/* ?: configurationCacheProjectResolvers*/
 
-    private val packageManager
-        get() = nodeJs.map { it.packageManager }
+//    private val packageManager
+//        get() = nodeJs.map { it.packageManager }
 
-    private val yarnEnvironment
-        get() = yarn.map { it.requireConfigured() }
+//    private val yarnEnvironment
+//        get() = yarn.map { it.requireConfigured() }
 
-    private val npmEnvironment
-        get() = nodeJs.map { it.asNpmEnvironment }
+//    private val npmEnvironment
+//        get() = nodeJs.map { it.asNpmEnvironment }
 
-    private val yarnResolutions
-        get() = yarn.map { it.resolutions }
+//    private val yarnResolutions
+//        get() = yarn.map { it.resolutions }
 
-    internal val taskRequirements
-        get() = taskRequirements_/* ?: resolverStateHolder.get().parameters.taskRequirements.get()*/
+//    internal val taskRequirements
+//        get() = taskRequirements_/* ?: resolverStateHolder.get().parameters.taskRequirements.get()*/
 
 //    internal val mayBeUpToDateTasksRegistry =
 //        MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(rootProject_)
@@ -241,7 +247,11 @@ class KotlinRootNpmResolver internal constructor(
     /**
      * Don't use directly, use [KotlinNpmResolutionManager.installIfNeeded] instead.
      */
-    internal fun prepareInstallation(logger: Logger): Installation {
+    internal fun prepareInstallation(
+        logger: Logger,
+        npmEnvironment: NpmEnvironment,
+        yarnEnvironment: YarnEnv,
+    ): Installation {
         synchronized(projectResolvers) {
             state = RootResolverState.PROJECTS_CLOSED
 
@@ -253,13 +263,13 @@ class KotlinRootNpmResolver internal constructor(
             gradleNodeModules.close()
             compositeNodeModules.close()
 
-            packageManager.get().prepareRootProject(
-                npmEnvironment.get(),
+            npmEnvironment.packageManager.prepareRootProject(
+                npmEnvironment,
                 rootProjectName.get(),
                 rootProjectVersion.get(),
                 logger,
                 allNpmPackages,
-                yarnResolutions.get()
+                yarnEnvironment.yarnResolutions
                     .associate { it.path to it.toVersionString() },
             )
 
@@ -276,7 +286,9 @@ class KotlinRootNpmResolver internal constructor(
         internal fun install(
             args: List<String>,
             services: ServiceRegistry,
-            logger: Logger
+            logger: Logger,
+            npmEnvironment: NpmEnvironment,
+            yarnEnvironment: YarnEnv,
         ): KotlinRootNpmResolution {
             synchronized(projectResolvers) {
                 if (state == RootResolverState.INSTALLED) {
@@ -291,11 +303,11 @@ class KotlinRootNpmResolver internal constructor(
                     .values
                     .flatMap { it.npmProjects }
 
-                packageManager.get().resolveRootProject(
+                npmEnvironment.packageManager.resolveRootProject(
                     services,
                     logger,
-                    npmEnvironment.get(),
-                    yarnEnvironment.get(),
+                    npmEnvironment,
+                    yarnEnvironment,
                     allNpmPackages,
                     args
                 )

@@ -60,7 +60,7 @@ open class YarnRootExtension(
             .withType(RootPackageJsonTask::class.java)
             .named(RootPackageJsonTask.NAME)
 
-    var resolutions: MutableList<YarnResolution> = mutableListOf()
+    var resolutions: MutableList<YarnResolution> by Property(mutableListOf())
 
     fun resolution(path: String, configure: Action<YarnResolution>) {
         resolutions.add(
@@ -116,6 +116,7 @@ open class YarnRootExtension(
             yarnLockMismatchReport = yarnLockMismatchReport,
             reportNewYarnLock = reportNewYarnLock,
             yarnLockAutoReplace = yarnLockAutoReplace,
+            yarnResolutions = resolutions
         )
     }
 
