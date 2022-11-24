@@ -1109,40 +1109,33 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
         }
 
         dataFlowAnalyzer.enterDelegatedConstructorCall()
-        var callCompleted = true
-        var result = delegatedConstructorCall
-        try {
-            val lastDispatchReceiver = implicitReceiverStack.lastDispatchReceiver()
-            context.forDelegatedConstructorCall(containingConstructor, containingClass as? FirRegularClass, components) {
-                delegatedConstructorCall.transformChildren(transformer, ResolutionMode.ContextDependent)
-            }
-
-            val reference = delegatedConstructorCall.calleeReference
-            val constructorType: ConeClassLikeType? = when (reference) {
-                is FirThisReference -> lastDispatchReceiver?.type as? ConeClassLikeType
-                is FirSuperReference -> reference.superTypeRef
-                    .coneTypeSafe<ConeClassLikeType>()
-                    ?.takeIf { it !is ConeErrorType }
-                    ?.fullyExpandedType(session)
-                else -> null
-            }
-
-            val resolvedCall = callResolver.resolveDelegatingConstructorCall(delegatedConstructorCall, constructorType)
-            if (reference is FirThisReference && reference.boundSymbol == null) {
-                resolvedCall.dispatchReceiver.typeRef.coneTypeSafe<ConeClassLikeType>()?.lookupTag?.toSymbol(session)?.let {
-                    reference.replaceBoundSymbol(it)
-                }
-            }
-
-            // it seems that we may leave this code as is
-            // without adding `context.withTowerDataContext(context.getTowerDataContextForConstructorResolution())`
-            val completionResult = callCompleter.completeCall(resolvedCall, noExpectedType)
-            result = completionResult.result
-            callCompleted = completionResult.callCompleted
-            return result
-        } finally {
-            dataFlowAnalyzer.exitDelegatedConstructorCall(result, callCompleted)
+        val lastDispatchReceiver = implicitReceiverStack.lastDispatchReceiver()
+        context.forDelegatedConstructorCall(containingConstructor, containingClass as? FirRegularClass, components) {
+            delegatedConstructorCall.transformChildren(transformer, ResolutionMode.ContextDependent)
         }
+
+        val reference = delegatedConstructorCall.calleeReference
+        val constructorType: ConeClassLikeType? = when (reference) {
+            is FirThisReference -> lastDispatchReceiver?.type as? ConeClassLikeType
+            is FirSuperReference -> reference.superTypeRef
+                .coneTypeSafe<ConeClassLikeType>()
+                ?.takeIf { it !is ConeErrorType }
+                ?.fullyExpandedType(session)
+            else -> null
+        }
+
+        val resolvedCall = callResolver.resolveDelegatingConstructorCall(delegatedConstructorCall, constructorType)
+        if (reference is FirThisReference && reference.boundSymbol == null) {
+            resolvedCall.dispatchReceiver.typeRef.coneTypeSafe<ConeClassLikeType>()?.lookupTag?.toSymbol(session)?.let {
+                reference.replaceBoundSymbol(it)
+            }
+        }
+
+        // it seems that we may leave this code as is
+        // without adding `context.withTowerDataContext(context.getTowerDataContextForConstructorResolution())`
+        val completionResult = callCompleter.completeCall(resolvedCall, noExpectedType)
+        dataFlowAnalyzer.exitDelegatedConstructorCall(completionResult.result, completionResult.callCompleted)
+        return completionResult.result
     }
 
     private fun extractSuperTypeDeclaration(typeRef: FirTypeRef): FirRegularClass? {
