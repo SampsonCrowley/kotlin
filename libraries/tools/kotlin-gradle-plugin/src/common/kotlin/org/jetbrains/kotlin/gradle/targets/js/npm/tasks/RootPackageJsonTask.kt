@@ -30,10 +30,13 @@ open class RootPackageJsonTask : DefaultTask() {
     @Transient
     private val yarn = project.rootProject.yarn
     private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
+
+    @get:Internal
     val npmEnvironment by lazy {
         nodeJs.asNpmEnvironment
     }
 
+    @get:Internal
     val yarnEnv by lazy {
         yarn.requireConfigured()
     }

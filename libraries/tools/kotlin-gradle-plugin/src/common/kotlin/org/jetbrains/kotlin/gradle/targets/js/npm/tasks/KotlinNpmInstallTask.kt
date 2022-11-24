@@ -35,10 +35,12 @@ open class KotlinNpmInstallTask : DefaultTask() {
     @Transient
     private val yarn = project.rootProject.yarn
 
+    @get:Internal
     val npmEnvironment by lazy {
         nodeJs!!.asNpmEnvironment
     }
 
+    @get:Internal
     val yarnEnv by lazy {
         yarn.requireConfigured()
     }
