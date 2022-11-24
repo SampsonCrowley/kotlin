@@ -28205,6 +28205,12 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirDiagnosti
             }
 
             @Test
+            @TestMetadata("ExhaustiveWhenOnTypeWithSealedSupertype.kt")
+            public void testExhaustiveWhenOnTypeWithSealedSupertype() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/sealed/ExhaustiveWhenOnTypeWithSealedSupertype.kt");
+            }
+
+            @Test
             @TestMetadata("ExhaustiveWhenWithAdditionalMember.kt")
             public void testExhaustiveWhenWithAdditionalMember() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/sealed/ExhaustiveWhenWithAdditionalMember.kt");

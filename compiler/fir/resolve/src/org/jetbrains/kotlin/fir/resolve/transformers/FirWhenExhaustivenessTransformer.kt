@@ -298,7 +298,21 @@ private object WhenOnEnumExhaustivenessChecker : WhenExhaustivenessChecker() {
 
 private object WhenOnSealedClassExhaustivenessChecker : WhenExhaustivenessChecker() {
     override fun isApplicable(subjectType: ConeKotlinType, session: FirSession): Boolean {
-        return (subjectType.toSymbol(session)?.fir as? FirRegularClass)?.modality == Modality.SEALED
+        val visitedSuperTypes = mutableSetOf<ConeKotlinType>()
+
+        fun ConeKotlinType.isSealed(): Boolean {
+            if (!visitedSuperTypes.add(this)) return false
+            val symbol = toRegularClassSymbol(session) ?: return false
+            if (symbol.modality == Modality.SEALED) return true
+
+            for (superType in symbol.resolvedSuperTypes) {
+                if (superType.isSealed()) return true
+            }
+
+            return false
+        }
+
+        return subjectType.isSealed()
     }
 
     override fun computeMissingCases(
