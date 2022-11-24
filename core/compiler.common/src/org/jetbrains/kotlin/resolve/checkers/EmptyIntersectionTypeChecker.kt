@@ -91,35 +91,33 @@ internal object EmptyIntersectionTypeChecker {
                     return EmptyIntersectionTypeInfo(EmptyIntersectionTypeKind.MULTIPLE_CLASSES, firstType, secondType)
                 }
 
-                val atLeastOneInterface = firstTypeConstructor.isInterface() || secondTypeConstructor.isInterface()
-                if (atLeastOneInterface) {
-                    val incompatibleSupertypes = getIncompatibleSuperTypes(firstType, secondType)
-                    if (incompatibleSupertypes != null) {
-                        return EmptyIntersectionTypeInfo(EmptyIntersectionTypeKind.INCOMPATIBLE_SUPERTYPES, *incompatibleSupertypes)
-                    }
-                }
-
                 val firstSuperTypeWithSecondConstructor = AbstractTypeChecker.findCorrespondingSupertypes(
                     typeCheckerState, firstType.lowerBoundIfFlexible(), secondTypeConstructor
                 ).singleOrNull()
+                if (firstSuperTypeWithSecondConstructor != null) {
+                    continue
+                }
                 val secondSuperTypeByFirstConstructor = AbstractTypeChecker.findCorrespondingSupertypes(
                     typeCheckerState, secondType.lowerBoundIfFlexible(), firstTypeConstructor
                 ).singleOrNull()
 
                 when {
-                    firstSuperTypeWithSecondConstructor != null || secondSuperTypeByFirstConstructor != null -> {
+                    secondSuperTypeByFirstConstructor != null -> {
                         continue
                     }
-                    !atLeastOneInterface -> {
+                    !firstTypeConstructor.isInterface() && !secondTypeConstructor.isInterface() -> {
                         // Two classes can't have a common subtype if neither is a subtype of another
                         return EmptyIntersectionTypeInfo(EmptyIntersectionTypeKind.MULTIPLE_CLASSES, firstType, secondType)
                     }
                     else -> {
+                        val incompatibleSupertypes = getIncompatibleSuperTypes(firstType, secondType)
+                        if (incompatibleSupertypes != null) {
+                            return EmptyIntersectionTypeInfo(EmptyIntersectionTypeKind.INCOMPATIBLE_SUPERTYPES, *incompatibleSupertypes)
+                        }
                         // don't have incompatible supertypes so can have a common subtype only if all types are interfaces
                         if (firstTypeConstructor.isFinalClassConstructor() || secondTypeConstructor.isFinalClassConstructor()) {
                             possibleEmptyIntersectionKind = EmptyIntersectionTypeInfo(
-                                if (atLeastOneInterface) EmptyIntersectionTypeKind.FINAL_CLASS_AND_INTERFACE
-                                else EmptyIntersectionTypeKind.SINGLE_FINAL_CLASS,
+                                EmptyIntersectionTypeKind.FINAL_CLASS_AND_INTERFACE,
                                 firstType, secondType
                             )
                         }
