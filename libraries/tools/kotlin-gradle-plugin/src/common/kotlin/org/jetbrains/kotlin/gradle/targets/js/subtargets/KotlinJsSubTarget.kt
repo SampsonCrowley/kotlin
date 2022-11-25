@@ -139,7 +139,7 @@ abstract class KotlinJsSubTarget(
                 }
 
                 if (it.enabled) {
-                    nodeJs.taskRequirements.addTaskRequirements(it)
+                    nodeJs.taskRequirements.get().addTaskRequirements(it)
                 }
             }
         }

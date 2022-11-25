@@ -59,7 +59,7 @@ abstract class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
         }
 
         if (test.enabled) {
-            nodeJs.taskRequirements.addTaskRequirements(test)
+            nodeJs.taskRequirements.get().addTaskRequirements(test)
         }
     }
 

@@ -81,7 +81,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
 
     @get:Input
     internal val toolsNpmDependencies: List<String> by lazy {
-        nodeJs.taskRequirements
+        nodeJs.taskRequirements.get()
             .getCompilationNpmRequirements(projectPath, compilationDisambiguatedName)
             .map { it.toString() }
             .sorted()

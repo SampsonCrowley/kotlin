@@ -6,9 +6,12 @@
 package org.jetbrains.kotlin.gradle.targets.js.nodejs
 
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildServiceRegistry
 import org.jetbrains.kotlin.gradle.internal.ConfigurationPhaseAware
 import org.jetbrains.kotlin.gradle.logging.kotlinInfo
 import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
+import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmApi
 import org.jetbrains.kotlin.gradle.targets.js.yarn.Yarn
 import org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore
@@ -16,6 +19,7 @@ import java.io.File
 import java.io.Serializable
 
 open class NodeJsRootExtension(
+    sharedServices: BuildServiceRegistry,
     logger: Logger,
     gradleUserHomeDir: File,
     val rootProjectDir: File,
@@ -41,7 +45,10 @@ open class NodeJsRootExtension(
 
     var packageManager: NpmApi by Property(Yarn())
 
-    val taskRequirements: TasksRequirements = TasksRequirements()
+    val taskRequirements: Provider<TasksRequirements> = sharedServices.registerIfAbsent(
+        "kotlin-npm-tasks-requirements",
+        TasksRequirements::class.java
+    ) {}
 
     val rootPackageDir: File = rootProjectBuildDir.resolve("js")
 

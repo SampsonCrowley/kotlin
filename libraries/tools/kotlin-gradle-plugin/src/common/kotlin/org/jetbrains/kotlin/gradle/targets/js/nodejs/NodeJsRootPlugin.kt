@@ -39,6 +39,7 @@ open class NodeJsRootPlugin : Plugin<Project> {
         val nodeJs = project.extensions.create(
             NodeJsRootExtension.EXTENSION_NAME,
             NodeJsRootExtension::class.java,
+            project.gradle.sharedServices,
             project.logger,
             project.gradle.gradleUserHomeDir,
             project.projectDir,
