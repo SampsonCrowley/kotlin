@@ -27,6 +27,7 @@ internal class SharedCompilationData(
     val refinesPaths: FileCollection
 )
 
+@Suppress("UNUSED_PARAMETER")
 internal fun buildKotlinNativeKlibCompilerArgs(
     outFile: File,
     optimized: Boolean,
@@ -65,7 +66,8 @@ internal fun buildKotlinNativeKlibCompilerArgs(
         addArg("-friend-modules", friends.joinToString(File.pathSeparator) { it.absolutePath })
     }
 
-    add("-library-version=$version")
+    // TODO: uncomment after advancing bootstrap.
+    //add("-library-version=$version")
 
     if (sharedCompilationData != null) {
         val refinesPaths = sharedCompilationData.refinesPaths.files

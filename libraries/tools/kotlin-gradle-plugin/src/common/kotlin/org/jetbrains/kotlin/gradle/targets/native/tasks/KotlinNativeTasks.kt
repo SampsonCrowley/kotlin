@@ -823,7 +823,8 @@ open class CInteropProcess @Inject internal constructor(params: Params) : Defaul
                 addArg("-Xmodule-name", moduleName)
             }
 
-            addArg("-libraryVersion", project.version.toString())
+            // TODO: uncomment after advancing bootstrap.
+            //addArg("-libraryVersion", project.version.toString())
 
             addAll(extraOpts)
         }
