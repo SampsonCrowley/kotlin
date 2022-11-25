@@ -497,6 +497,7 @@ internal constructor(
             moduleName,
             shortModuleName,
             friendModule,
+            project.version.toString(),
             createSharedCompilationDataOrNull(),
             sources.asFileTree,
             commonSourcesTree
@@ -1098,6 +1099,8 @@ open class CInteropProcess @Inject internal constructor(params: Params) : Defaul
             if (konanVersion.isAtLeast(1, 4, 0)) {
                 addArg("-Xmodule-name", moduleName)
             }
+
+            addArg("-libraryVersion", project.version.toString())
 
             addAll(extraOpts)
         }

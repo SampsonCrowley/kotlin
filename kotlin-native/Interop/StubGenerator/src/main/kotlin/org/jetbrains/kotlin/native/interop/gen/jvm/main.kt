@@ -421,6 +421,7 @@ private fun processCLib(flavor: KotlinPlatform, cinteropArguments: CInteropArgum
                     nativeBitcodeFiles = compiledFiles + nativeOutputPath,
                     target = tool.target,
                     moduleName = moduleName,
+                    libraryVersion = cinteropArguments.libraryVersion,
                     outputPath = outputPath,
                     manifest = def.manifestAddendProperties,
                     dependencies = stdlibDependency + imports.requiredLibraries.toList(),

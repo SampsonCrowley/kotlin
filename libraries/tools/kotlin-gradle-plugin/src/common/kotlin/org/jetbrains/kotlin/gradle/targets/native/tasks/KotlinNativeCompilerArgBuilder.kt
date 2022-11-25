@@ -42,6 +42,7 @@ internal fun buildKotlinNativeKlibCompilerArgs(
     moduleName: String,
     shortModuleName: String,
     friendModule: FileCollection,
+    version: String,
     sharedCompilationData: SharedCompilationData?,
     source: FileTree,
     commonSourcesTree: FileTree
@@ -63,6 +64,8 @@ internal fun buildKotlinNativeKlibCompilerArgs(
     if (friends.isNotEmpty()) {
         addArg("-friend-modules", friends.joinToString(File.pathSeparator) { it.absolutePath })
     }
+
+    add("-library-version=$version")
 
     if (sharedCompilationData != null) {
         val refinesPaths = sharedCompilationData.refinesPaths.files
