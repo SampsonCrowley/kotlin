@@ -7,7 +7,9 @@ package org.jetbrains.kotlin.scripting.compiler.test
 
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.scripting.compiler.plugin.getBaseCompilerArgumentsFromProperty
 import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerIsolated
+import org.jetbrains.kotlin.utils.tryConstructClassFromStringArgs
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.createInstance
@@ -30,6 +32,18 @@ class ScriptCompilerTest : TestCase() {
         assertTrue(res is ResultWithDiagnostics.Failure)
         assertTrue(res.reports.any { it.message == "err13" })
         assertTrue(res.reports.none { it.message.contains("nonsense") })
+    }
+
+    fun testSimpleVarAccess() {
+        val res = compileToClass(
+            """
+                val x = 2
+                val y = x
+            """.trimIndent().toScriptSource()
+        )
+
+        val kclass = res.valueOrThrow()
+        val scriptInstance = tryConstructClassFromStringArgs(kclass.java, listOf("a"))
     }
 
     fun testTypeAliases() {
@@ -78,7 +92,12 @@ class ScriptCompilerTest : TestCase() {
         script: SourceCode,
         cfgBody: ScriptCompilationConfiguration.Builder.() -> Unit
     ): ResultWithDiagnostics<CompiledScript> {
-        val compilationConfiguration = ScriptCompilationConfiguration(cfgBody)
+        val compilationConfiguration = ScriptCompilationConfiguration {
+            cfgBody()
+            getBaseCompilerArgumentsFromProperty()?.let {
+                compilerOptions.append(it)
+            }
+        }
         val compiler = ScriptJvmCompilerIsolated(defaultJvmScriptingHostConfiguration)
         return compiler.compile(script, compilationConfiguration)
     }
