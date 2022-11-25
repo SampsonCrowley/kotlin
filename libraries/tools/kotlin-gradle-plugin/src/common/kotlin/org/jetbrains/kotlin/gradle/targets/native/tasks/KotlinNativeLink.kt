@@ -202,10 +202,6 @@ constructor(
 
     private val externalDependenciesArgs by lazy { ExternalDependenciesBuilder(project, compilation).buildCompilerArgs() }
 
-    private val cacheBuilderSettings by lazy {
-        CacheBuilder.Settings.createWithProject(project, binary, konanTarget, toolOptions, externalDependenciesArgs)
-    }
-
     override fun createCompilerArgs(): StubK2NativeCompilerArguments = StubK2NativeCompilerArguments()
 
     override fun setupCompilerArgs(
@@ -311,11 +307,14 @@ constructor(
         )
 
         val executionContext = KotlinToolRunner.GradleExecutionContext.fromTaskContext(objectFactory, execOperations, logger)
-        val cacheArgs = CacheBuilder(
-            executionContext = executionContext,
-            settings = cacheBuilderSettings,
-            konanPropertiesService = konanPropertiesService.get()
-        ).buildCompilerArgs(resolvedDependencyGraph)
+        val additionalOptions = mutableListOf<String>().apply {
+            addAll(externalDependenciesArgs)
+            if (konanCacheKind.get() != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
+                add("-Xauto-cache-from=${project.gradle.gradleUserHomeDir}")
+            }
+            if (logger.isInfoEnabled)
+                add("-verbose")
+        }
 
         @Suppress("DEPRECATION") val enableEndorsedLibs = this.enableEndorsedLibs // TODO: remove before 1.9.0, see KT-54098
 
@@ -338,7 +337,7 @@ constructor(
             isStaticFramework,
             exportLibraries.files.filterKlibsPassedToCompiler(),
             sources.asFileTree.files.toList(),
-            externalDependenciesArgs + cacheArgs
+            additionalOptions
         )
 
         KotlinNativeCompilerRunner(
