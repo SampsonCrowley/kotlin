@@ -128,7 +128,7 @@ class K2NativeCompilerArguments : CommonCompilerArguments() {
     @Argument(
         value = "-Xcache-directory",
         valueDescription = "<path>",
-        description = "Path to the directory containing caches",
+        description = "Paths to the directories containing caches",
         delimiter = ""
     )
     var cacheDirectories: Array<String>? = null
@@ -140,6 +140,15 @@ class K2NativeCompilerArguments : CommonCompilerArguments() {
         delimiter = ""
     )
     var cachedLibraries: Array<String>? = null
+
+    @Argument(
+        value = "-Xauto-cache-from",
+        valueDescription = "<path>",
+        description = "Paths to the root directories from which dependencies are to be cached automatically.\n" +
+                "Caches will be placed into the kotlin-native system cache directory.",
+        delimiter = ""
+    )
+    var autoCacheableFrom: Array<String>? = null
 
     @Argument(value="-Xcheck-dependencies", deprecatedName = "--check_dependencies", description = "Check dependencies and download the missing ones")
     var checkDependencies: Boolean = false
