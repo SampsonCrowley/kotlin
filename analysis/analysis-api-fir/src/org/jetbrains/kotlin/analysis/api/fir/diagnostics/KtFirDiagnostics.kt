@@ -3164,6 +3164,12 @@ sealed class KtFirDiagnostic<PSI : PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = JavaSamInterfaceConstructorReference::class
     }
 
+    abstract class JavaShadowedProtectedFieldReference : KtFirDiagnostic<PsiElement>() {
+        override val diagnosticClass get() = JavaShadowedProtectedFieldReference::class
+        abstract val containerClass: ClassId
+        abstract val shadowingClass: ClassId
+    }
+
     abstract class Syntax : KtFirDiagnostic<PsiElement>() {
         override val diagnosticClass get() = Syntax::class
     }
