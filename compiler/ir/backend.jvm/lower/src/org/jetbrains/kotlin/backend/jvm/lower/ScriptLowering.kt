@@ -459,7 +459,7 @@ private class ScriptToClassTransformer(
         irScript.thisReceiver?.transform(this, ScriptToClassTransformerContext(null, null, null, false)) ?: run {
             context.symbolTable.enterScope(irScriptClass)
             val thisType = IrSimpleTypeImpl(irScriptClass.symbol, false, emptyList(), emptyList())
-            val newReceiver = irScriptClass.createScriptReceiverParameter(IrDeclarationOrigin.INSTANCE_RECEIVER, thisType)
+            val newReceiver = irScriptClass.createThisReceiverParameter(IrDeclarationOrigin.INSTANCE_RECEIVER, thisType)
             context.symbolTable.leaveScope(irScriptClass)
             newReceiver
         }
@@ -486,7 +486,7 @@ private class ScriptToClassTransformer(
             typeRemapper.withinScope(this) {
                 val newDispatchReceiverParameter = dispatchReceiverParameter?.transform(data) ?: run {
                     if (this.isScriptTopLevel()) {
-                        createScriptReceiverParameter(IrDeclarationOrigin.SCRIPT_THIS_RECEIVER, scriptClassReceiver.type)
+                        createThisReceiverParameter(IrDeclarationOrigin.SCRIPT_THIS_RECEIVER, scriptClassReceiver.type)
                     } else null
                 }
                 val dataForChildren =
@@ -511,7 +511,7 @@ private class ScriptToClassTransformer(
             }
         }
 
-    private fun IrDeclarationParent.createScriptReceiverParameter(origin: IrDeclarationOrigin, type: IrType): IrValueParameter =
+    private fun IrDeclarationParent.createThisReceiverParameter(origin: IrDeclarationOrigin, type: IrType): IrValueParameter =
         context.symbolTable.irFactory.createValueParameter(
             startOffset, endOffset, origin, IrValueParameterSymbolImpl(),
             SpecialNames.THIS, UNDEFINED_PARAMETER_INDEX, type,
@@ -573,17 +573,7 @@ private class ScriptToClassTransformer(
     override fun visitConstructor(declaration: IrConstructor, data: ScriptToClassTransformerContext): IrConstructor = declaration.apply {
         if (declaration in capturingClassesConstructors) {
             declaration.dispatchReceiverParameter =
-                IrValueParameterBuilder().run<IrValueParameterBuilder, IrValueParameter> {
-                    name = SpecialNames.THIS
-                    type = scriptClassReceiver.type
-                    declaration.factory.createValueParameter(
-                        startOffset, endOffset, IrDeclarationOrigin.INSTANCE_RECEIVER,
-                        IrValueParameterSymbolImpl(),
-                        name, index, type, varargElementType, isCrossInline, isNoinline, isHidden, isAssignable
-                    ).also {
-                        it.parent = declaration
-                    }
-                }
+                declaration.createThisReceiverParameter(IrDeclarationOrigin.INSTANCE_RECEIVER, scriptClassReceiver.type)
         }
         transformParent()
         transformFunctionChildren(data)
