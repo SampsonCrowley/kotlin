@@ -280,6 +280,7 @@ enum class LanguageFeature(
     CustomEqualsInInlineClasses(KOTLIN_1_9), // KT-24874
     EnhanceNullabilityOfPrimitiveArrays(KOTLIN_1_9, kind = BUG_FIX), // KT-54521
     RefineTypeCheckingOnAssignmentsToJavaFields(KOTLIN_1_9, kind = BUG_FIX), // KT-46727
+    ReferencesToSyntheticJavaProperties(KOTLIN_1_9), // KT-8575
 
 
     // Disabled for indefinite time. See KT-53751
@@ -298,7 +299,6 @@ enum class LanguageFeature(
     // Experimental features
 
     BreakContinueInInlineLambdas(null), // KT-1436
-    ReferencesToSyntheticJavaProperties(null), // KT-8575
     LightweightLambdas(null),
     JsEnableExtensionFunctionInExternals(null, kind = OTHER),
     PackagePrivateFileClassesWithAllPrivateMembers(null), // Disabled until the breaking change is approved by the committee, see KT-10884.
