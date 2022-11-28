@@ -59,7 +59,7 @@ open class FirValueParameterBuilder : FirAnnotationContainerBuilder {
     override val annotations: MutableList<FirAnnotation> = mutableListOf()
     open lateinit var symbol: FirValueParameterSymbol
     open var defaultValue: FirExpression? = null
-    open lateinit var containingFunctionSymbol: FirFunctionSymbol<*>
+    open var containingFunctionSymbol: FirFunctionSymbol<*>? = null
     open var isCrossinline: Boolean by kotlin.properties.Delegates.notNull<Boolean>()
     open var isNoinline: Boolean by kotlin.properties.Delegates.notNull<Boolean>()
     open var isVararg: Boolean by kotlin.properties.Delegates.notNull<Boolean>()

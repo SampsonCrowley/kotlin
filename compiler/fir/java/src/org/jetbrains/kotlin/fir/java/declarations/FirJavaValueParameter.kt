@@ -241,7 +241,7 @@ inline fun buildJavaValueParameterCopy(original: FirValueParameter, init: FirJav
     val annotations = original.annotations
     copyBuilder.annotationBuilder = { annotations }
     copyBuilder.defaultValue = original.defaultValue
-    copyBuilder.containingFunctionSymbol = original.containingFunctionSymbol
+    copyBuilder.containingFunctionSymbol = original.containingFunctionSymbol!!
     copyBuilder.isVararg = original.isVararg
     return copyBuilder.apply(init).build()
 }

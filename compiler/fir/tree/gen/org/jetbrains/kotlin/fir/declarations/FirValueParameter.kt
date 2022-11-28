@@ -50,7 +50,7 @@ abstract class FirValueParameter : FirVariable(), FirControlFlowGraphOwner {
     abstract override val controlFlowGraphReference: FirControlFlowGraphReference?
     abstract override val symbol: FirValueParameterSymbol
     abstract val defaultValue: FirExpression?
-    abstract val containingFunctionSymbol: FirFunctionSymbol<*>
+    abstract val containingFunctionSymbol: FirFunctionSymbol<*>?
     abstract val isCrossinline: Boolean
     abstract val isNoinline: Boolean
     abstract val isVararg: Boolean

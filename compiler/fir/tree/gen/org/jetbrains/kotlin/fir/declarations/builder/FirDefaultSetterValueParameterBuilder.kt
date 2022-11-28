@@ -65,7 +65,7 @@ class FirDefaultSetterValueParameterBuilder : FirAnnotationContainerBuilder {
     override val annotations: MutableList<FirAnnotation> = mutableListOf()
     lateinit var symbol: FirValueParameterSymbol
     var defaultValue: FirExpression? = null
-    lateinit var containingFunctionSymbol: FirFunctionSymbol<*>
+    var containingFunctionSymbol: FirFunctionSymbol<*>? = null
     var isCrossinline: Boolean = false
     var isNoinline: Boolean = false
     var isVararg: Boolean = false

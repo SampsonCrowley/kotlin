@@ -54,7 +54,7 @@ internal class FirValueParameterImpl(
     override val annotations: MutableList<FirAnnotation>,
     override val symbol: FirValueParameterSymbol,
     override var defaultValue: FirExpression?,
-    override val containingFunctionSymbol: FirFunctionSymbol<*>,
+    override val containingFunctionSymbol: FirFunctionSymbol<*>?,
     override val isCrossinline: Boolean,
     override val isNoinline: Boolean,
     override val isVararg: Boolean,
