@@ -29,7 +29,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
 
     init {
         onlyIf {
-            npmResolutionManager.isConfiguringState()
+            npmResolutionManager.get().isConfiguringState()
         }
         outputs.upToDateWhen {
             // this way we will ensure that we need to resolve dependencies for the compilation in case of UP-TO-DATE task
@@ -42,7 +42,9 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     @Transient
     private lateinit var nodeJs: NodeJsRootExtension
 
-    private val npmResolutionManager by lazy { project.rootProject.kotlinNpmResolutionManager.get() }
+    private val npmResolutionManager by lazy { project.rootProject.kotlinNpmResolutionManager }
+
+    private val tasksRequirements by lazy { nodeJs.taskRequirements }
 
     @Transient
     private lateinit var compilation: KotlinJsCompilation
@@ -58,7 +60,9 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     val projectPath = project.path
 
     private val compilationResolver
-        get() = npmResolutionManager.resolver[projectPath][compilationDisambiguatedName]
+        get() = nodeJs?.let {
+            it.resolver[projectPath][compilationDisambiguatedName]
+        } ?: npmResolutionManager.get().resolver.get()[projectPath][compilationDisambiguatedName]
 
     private val producer: KotlinCompilationNpmResolver.PackageJsonProducer
         get() = compilationResolver.packageJsonProducer
@@ -73,7 +77,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
 
     private fun findDependentTasks(): Collection<Any> =
         producer.internalDependencies.map { dependency ->
-            npmResolutionManager.resolver[dependency.projectPath][dependency.compilationName].npmProject.packageJsonTaskPath
+            nodeJs.resolver[dependency.projectPath][dependency.compilationName].npmProject.packageJsonTaskPath
         } + producer.internalCompositeDependencies.map { dependency ->
             dependency.includedBuild?.task(":$PACKAGE_JSON_UMBRELLA_TASK_NAME") ?: error("includedBuild instance is not available")
             dependency.includedBuild.task(":${RootPackageJsonTask.NAME}")
@@ -123,6 +127,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
                     set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))
                     disallowChanges()
                 }
+                task.usesService(project.kotlinNpmResolutionManager)
 
                 task.dependsOn(target.project.provider { task.findDependentTasks() })
                 task.dependsOn(npmCachesSetupTask)

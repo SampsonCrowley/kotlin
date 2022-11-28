@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.CompositeNodeModulesCache
 import org.jetbrains.kotlin.gradle.targets.js.npm.GradleNodeModulesCache
 import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.asNpmEnvironment
+import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.KotlinRootNpmResolver
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.KotlinRootNpmResolverStateHolder
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.MayBeUpToDatePackageJsonTasksRegistry
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.PACKAGE_JSON_UMBRELLA_TASK_NAME
@@ -67,7 +68,7 @@ open class NodeJsRootPlugin : Plugin<Project> {
             it.description = "Setup file hasher for caches"
         }
 
-        project.registerTask<KotlinNpmInstallTask>(KotlinNpmInstallTask.NAME) {
+        val kotlinNpmInstallTask = project.registerTask<KotlinNpmInstallTask>(KotlinNpmInstallTask.NAME) {
             it.dependsOn(setupTask)
             it.dependsOn(setupFileHasherTask)
             it.group = TASKS_GROUP_NAME
@@ -109,20 +110,43 @@ open class NodeJsRootPlugin : Plugin<Project> {
                 it.parameters.rootProjectDir.set(project.projectDir)
             }
 
+        nodeJs.resolver = KotlinRootNpmResolver(
+            project.name,
+            project.version.toString(),
+            nodeJs.taskRequirements,
+            nodeJs.versions,
+            nodeJs.projectPackagesDir,
+            nodeJs.rootProjectDir,
+//        parameters.nodeJs,
+//        parameters.yarn,
+//        buildServiceRegistry,
+            gradleNodeModulesProvider,
+            compositeNodeModulesProvider,
+            MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project),
+//        yarnEnvironment_,
+//        npmEnvironment_,
+//        yarnResolutions_
+        )
+
         val kotlinNpmResolutionManager: Provider<KotlinNpmResolutionManager> =
             project.gradle.sharedServices.registerIfAbsent("kotlin-npm-resolution-manager", KotlinNpmResolutionManager::class.java) {
-                it.parameters.rootProjectName.set(project.name)
-                it.parameters.rootProjectVersion.set(project.version.toString())
-                it.parameters.tasksRequirements.set(nodeJs.taskRequirements)
-                it.parameters.versions.set(nodeJs.versions)
-                it.parameters.projectPackagesDir.set(nodeJs.projectPackagesDir)
-                it.parameters.rootProjectDir.set(nodeJs.rootProjectDir)
-//                it.parameters.nodeJs.set(nodeJs)
-//                it.parameters.yarn.set(yarnExtension)
-                it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
-                it.parameters.compositeNodeModulesProvider.set(compositeNodeModulesProvider)
-                it.parameters.mayBeUpToDateTasksRegistry.set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))
+                it.parameters.resolver.set(nodeJs.resolver)
+//                it.parameters.rootProjectName.set(project.name)
+//                it.parameters.rootProjectVersion.set(project.version.toString())
+//                it.parameters.tasksRequirements.set(nodeJs.taskRequirements)
+//                it.parameters.versions.set(nodeJs.versions)
+//                it.parameters.projectPackagesDir.set(nodeJs.projectPackagesDir)
+//                it.parameters.rootProjectDir.set(nodeJs.rootProjectDir)
+////                it.parameters.nodeJs.set(nodeJs)
+////                it.parameters.yarn.set(yarnExtension)
+//                it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
+//                it.parameters.compositeNodeModulesProvider.set(compositeNodeModulesProvider)
+//                it.parameters.mayBeUpToDateTasksRegistry.set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))
             }
+
+        kotlinNpmInstallTask.configure {
+            it.usesService(kotlinNpmResolutionManager)
+        }
 
 //        project.extensions.create(
 //            NodeJsRootExtension.EXTENSION_NAME_2,

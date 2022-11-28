@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.gradle.plugin.sources.sourceSetDependencyConfigurati
 import org.jetbrains.kotlin.gradle.plugin.usesPlatformOf
 import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject.Companion.PACKAGE_JSON
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinCompilationNpmResolution
@@ -85,6 +86,7 @@ internal class KotlinCompilationNpmResolver(
             listOf(compilation)
         ) {
             it.dependsOn(packageJsonTaskHolder)
+            it.usesService(project.kotlinNpmResolutionManager)
         }.also { packageJsonTask ->
             if (compilation.isMain()) {
                 project.tasks
@@ -166,7 +168,7 @@ internal class KotlinCompilationNpmResolver(
         }
 
         // We don't have `kotlin-js-test-runner` in NPM yet
-        all.dependencies.add(rootResolver.versions.get().kotlinJsTestRunner.createDependency(project))
+        all.dependencies.add(rootResolver.versions.kotlinJsTestRunner.createDependency(project))
 
         return all
     }
@@ -379,8 +381,8 @@ internal class KotlinCompilationNpmResolver(
         val projectPath: String,
         val compilationResolver: KotlinCompilationNpmResolver
     ) : Serializable {
-        private val projectPackagesDir by lazy { compilationResolver.rootResolver.projectPackagesDir.get() }
-        private val rootDir by lazy { compilationResolver.rootResolver.rootProjectDir.get() }
+        private val projectPackagesDir by lazy { compilationResolver.rootResolver.projectPackagesDir }
+        private val rootDir by lazy { compilationResolver.rootResolver.rootProjectDir }
 
 //        @Transient
 //        internal lateinit var compilationResolver: KotlinCompilationNpmResolver

@@ -82,36 +82,37 @@ abstract class KotlinNpmResolutionManager internal constructor(
 ) : BuildService<KotlinNpmResolutionManager.Parameters> {
 
     internal interface Parameters : BuildServiceParameters {
-        val rootProjectName: Property<String>
-        val rootProjectVersion: Property<String>
-        val tasksRequirements: Property<TasksRequirements>
-        val versions: Property<NpmVersions>
-        val projectPackagesDir: Property<File>
-        val rootProjectDir: Property<File>
-//        val nodeJs: Property<NodeJsRootExtension>
-//        val yarn: Property<YarnRootExtension>
-        val gradleNodeModulesProvider: Property<GradleNodeModulesCache>
-        val compositeNodeModulesProvider: Property<CompositeNodeModulesCache>
-        val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
+        val resolver: Property<KotlinRootNpmResolver>
+//        val rootProjectName: Property<String>
+//        val rootProjectVersion: Property<String>
+//        val tasksRequirements: Property<TasksRequirements>
+//        val versions: Property<NpmVersions>
+//        val projectPackagesDir: Property<File>
+//        val rootProjectDir: Property<File>
+////        val nodeJs: Property<NodeJsRootExtension>
+////        val yarn: Property<YarnRootExtension>
+//        val gradleNodeModulesProvider: Property<GradleNodeModulesCache>
+//        val compositeNodeModulesProvider: Property<CompositeNodeModulesCache>
+//        val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
     }
 
-    val resolver = KotlinRootNpmResolver(
-        parameters.rootProjectName,
-        parameters.rootProjectVersion,
-        parameters.tasksRequirements,
-        parameters.versions,
-        parameters.projectPackagesDir,
-        parameters.rootProjectDir,
-//        parameters.nodeJs,
-//        parameters.yarn,
-//        buildServiceRegistry,
-        parameters.gradleNodeModulesProvider,
-        parameters.compositeNodeModulesProvider,
-        parameters.mayBeUpToDateTasksRegistry,
-//        yarnEnvironment_,
-//        npmEnvironment_,
-//        yarnResolutions_
-    )
+//    val resolver = KotlinRootNpmResolver(
+//        parameters.rootProjectName,
+//        parameters.rootProjectVersion,
+//        parameters.tasksRequirements,
+//        parameters.versions,
+//        parameters.projectPackagesDir,
+//        parameters.rootProjectDir,
+////        parameters.nodeJs,
+////        parameters.yarn,
+////        buildServiceRegistry,
+//        parameters.gradleNodeModulesProvider,
+//        parameters.compositeNodeModulesProvider,
+//        parameters.mayBeUpToDateTasksRegistry,
+////        yarnEnvironment_,
+////        npmEnvironment_,
+////        yarnResolutions_
+//    )
 
 //    abstract class KotlinNpmResolutionManagerStateHolder : BuildService<BuildServiceParameters.None> {
 //        @Volatile
@@ -120,8 +121,11 @@ abstract class KotlinNpmResolutionManager internal constructor(
 //
 //    private val stateHolder get() = stateHolderProvider.get()
 
+    val resolver
+        get() = parameters.resolver
+
     @Volatile
-    var state: ResolutionState = ResolutionState.Configuring(resolver)
+    var state: ResolutionState = ResolutionState.Configuring(resolver.get())
 
     sealed class ResolutionState {
         abstract val npmProjects: List<NpmProject>

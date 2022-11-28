@@ -31,7 +31,7 @@ open class KotlinNpmInstallTask : DefaultTask() {
 
     @Transient
     private val nodeJs: NodeJsRootExtension? = project.rootProject.kotlinNodeJsExtension
-    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
+    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager
     @Transient
     private val yarn = project.rootProject.yarn
 
@@ -61,14 +61,13 @@ open class KotlinNpmInstallTask : DefaultTask() {
         }
     }
 
-    @Suppress("unused")
-    @get:PathSensitive(PathSensitivity.ABSOLUTE)
-    @get:IgnoreEmptyDirectories
-    @get:NormalizeLineEndings
-    @get:InputFiles
-    val packageJsonFiles: Collection<File> by lazy {
-        resolutionManager.packageJsonFiles
-    }
+//    @get:PathSensitive(PathSensitivity.RELATIVE)
+//    @get:IgnoreEmptyDirectories
+//    @get:NormalizeLineEndings
+//    @get:InputFiles
+//    val packageJsonFiles: Collection<File> by lazy {
+//        resolutionManager.get().packageJsonFiles
+//    }
 
     @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:IgnoreEmptyDirectories
@@ -85,13 +84,13 @@ open class KotlinNpmInstallTask : DefaultTask() {
 
     @TaskAction
     fun resolve() {
-        resolutionManager.installIfNeeded(
+        resolutionManager.get().installIfNeeded(
             args = args,
             services = services,
             logger = logger,
             npmEnvironment,
             yarnEnv
-        ) ?: throw (resolutionManager.state as KotlinNpmResolutionManager.ResolutionState.Error).wrappedException
+        ) ?: throw (resolutionManager.get().state as KotlinNpmResolutionManager.ResolutionState.Error).wrappedException
     }
 
     companion object {

@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.toVersionString
 import org.jetbrains.kotlin.gradle.utils.unavailableValueError
 import java.io.File
+import java.io.Serializable
 
 /**
  * See [KotlinNpmResolutionManager] for details about resolution process.
@@ -36,19 +37,23 @@ import java.io.File
  * create an own copy. We use build services as a single storage for the heavy state of this class.
  */
 class KotlinRootNpmResolver internal constructor(
-    val rootProjectName: Provider<String>,
-    val rootProjectVersion: Provider<String>,
+    val rootProjectName: String,
+    val rootProjectVersion: String,
+    @Transient
     val tasksRequirements: Provider<TasksRequirements>,
-    val versions: Provider<NpmVersions>,
-    val projectPackagesDir: Provider<File>,
-    val rootProjectDir: Provider<File>,
+    val versions: NpmVersions,
+    val projectPackagesDir: File,
+    val rootProjectDir: File,
 //    @Transient
 //    val nodeJs: Provider<NodeJsRootExtension>,
 //    val yarn: Provider<YarnRootExtension>,
 //    @Transient
 //    val buildServiceRegistry: BuildServiceRegistry,
+    @Transient
     val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
+    @Transient
     val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
+    @Transient
     val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
 //    @Transient
 //    val yarnEnvironment_: Provider<YarnEnv>?,
@@ -56,7 +61,7 @@ class KotlinRootNpmResolver internal constructor(
 //    val npmEnvironment_: Provider<NpmEnvironment>?,
 //    @Transient
 //    val yarnResolutions_: Provider<List<YarnResolution>>?
-) {
+) : Serializable {
 //    private val nodeJs_
 //        get() = nodeJs ?: unavailableValueError("nodeJs")
 
@@ -198,7 +203,8 @@ class KotlinRootNpmResolver internal constructor(
         }
     }
 
-    internal operator fun get(projectPath: String) = projectResolvers[projectPath] ?: error("$projectPath is not configured for JS usage")
+    internal operator fun get(projectPath: String) =
+        projectResolvers[projectPath] ?: error("$projectPath is not configured for JS usage")
 
     val compilations: Collection<KotlinJsCompilation>
         get() = projectResolvers.values.flatMap { it.compilationResolvers.map { it.compilation } }
@@ -265,8 +271,8 @@ class KotlinRootNpmResolver internal constructor(
 
             npmEnvironment.packageManager.prepareRootProject(
                 npmEnvironment,
-                rootProjectName.get(),
-                rootProjectVersion.get(),
+                rootProjectName,
+                rootProjectVersion,
                 logger,
                 allNpmPackages,
                 yarnEnvironment.yarnResolutions

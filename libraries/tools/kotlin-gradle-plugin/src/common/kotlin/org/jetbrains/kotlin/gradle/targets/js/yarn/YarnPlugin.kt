@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.gradle.targets.js.MultiplePluginDeclarationDetector
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsTaskProvidersExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.RequiresNpmDependencies
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.implementing
 import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
@@ -51,6 +52,7 @@ open class YarnPlugin : Plugin<Project> {
             task.dependsOn(nodeJsTaskProviders.npmCachesSetupTaskProvider)
             task.group = NodeJsRootPlugin.TASKS_GROUP_NAME
             task.description = "Create root package.json"
+            task.usesService(project.kotlinNpmResolutionManager)
 
             task.mustRunAfter(rootClean)
         }

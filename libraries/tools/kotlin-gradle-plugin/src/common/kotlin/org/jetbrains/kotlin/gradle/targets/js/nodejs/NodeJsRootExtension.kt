@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.gradle.logging.kotlinInfo
 import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
 import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmApi
+import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.KotlinRootNpmResolver
 import org.jetbrains.kotlin.gradle.targets.js.yarn.Yarn
 import org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore
 import java.io.File
@@ -49,6 +50,8 @@ open class NodeJsRootExtension(
         "kotlin-npm-tasks-requirements",
         TasksRequirements::class.java
     ) {}
+
+    lateinit var resolver: KotlinRootNpmResolver
 
     val rootPackageDir: File = rootProjectBuildDir.resolve("js")
 

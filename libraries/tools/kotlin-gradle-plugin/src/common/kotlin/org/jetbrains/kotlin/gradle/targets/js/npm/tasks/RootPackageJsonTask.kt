@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.gradle.targets.js.npm.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import org.gradle.work.NormalizeLineEndings
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject
@@ -21,7 +20,7 @@ open class RootPackageJsonTask : DefaultTask() {
         check(project == project.rootProject)
 
         onlyIf {
-            resolutionManager.isConfiguringState()
+            resolutionManager.get().isConfiguringState()
         }
     }
 
@@ -29,7 +28,7 @@ open class RootPackageJsonTask : DefaultTask() {
     private val nodeJs = project.rootProject.kotlinNodeJsExtension
     @Transient
     private val yarn = project.rootProject.yarn
-    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
+    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager
 
     @get:Internal
     val npmEnvironment by lazy {
@@ -46,17 +45,17 @@ open class RootPackageJsonTask : DefaultTask() {
         nodeJs.rootPackageDir.resolve(NpmProject.PACKAGE_JSON)
     }
 
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    @get:IgnoreEmptyDirectories
-    @get:NormalizeLineEndings
-    @get:InputFiles
-    val packageJsonFiles: Collection<File> by lazy {
-        resolutionManager.packageJsonFiles
-    }
+//    @get:PathSensitive(PathSensitivity.RELATIVE)
+//    @get:IgnoreEmptyDirectories
+//    @get:NormalizeLineEndings
+//    @get:InputFiles
+//    val packageJsonFiles: Collection<File> by lazy {
+//        resolutionManager.get().packageJsonFiles
+//    }
 
     @TaskAction
     fun resolve() {
-        resolutionManager.prepare(logger, npmEnvironment, yarnEnv)
+        resolutionManager.get().prepare(logger, npmEnvironment, yarnEnv)
     }
 
     companion object {

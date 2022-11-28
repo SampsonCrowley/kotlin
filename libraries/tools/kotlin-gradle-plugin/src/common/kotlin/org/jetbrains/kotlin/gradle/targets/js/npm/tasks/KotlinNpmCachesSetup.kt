@@ -20,8 +20,12 @@ abstract class KotlinNpmCachesSetup : DefaultTask() {
 
     @Transient
     private val nodeJs = project.rootProject.kotlinNodeJsExtension
-    private val gradleNodeModules = project.rootProject.kotlinNpmResolutionManager.get().resolver.gradleNodeModulesProvider
-    private val compositeNodeModules = project.rootProject.kotlinNpmResolutionManager.get().resolver.compositeNodeModulesProvider
+    private val gradleNodeModules by lazy {
+        project.rootProject.kotlinNpmResolutionManager.get().resolver.get().gradleNodeModulesProvider
+    }
+    private val compositeNodeModules by lazy {
+        project.rootProject.kotlinNpmResolutionManager.get().resolver.get().compositeNodeModulesProvider
+    }
 
     @TaskAction
     fun setup() {

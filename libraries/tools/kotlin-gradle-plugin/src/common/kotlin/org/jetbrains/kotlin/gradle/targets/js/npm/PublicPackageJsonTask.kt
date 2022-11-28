@@ -28,7 +28,7 @@ constructor(
 
     @Transient
     private val nodeJs = npmProject.nodeJs
-    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager.get()
+    private val resolutionManager = project.rootProject.kotlinNpmResolutionManager
 
     private val compilationName = compilation.disambiguatedName
     private val projectPath = project.path
@@ -43,7 +43,7 @@ constructor(
             }.customFields
 
     private val compilationResolver
-        get() = resolutionManager.resolver[projectPath][compilationName]
+        get() = resolutionManager.get().resolver.get()[projectPath][compilationName]
 
     private val compilationResolution
         get() = compilationResolver.getResolutionOrResolveIfForced() ?: error("Compilation resolution isn't available")
