@@ -63,7 +63,9 @@ inline fun <reified T : Any> evalString(
     source: String,
     noinline configure: ScriptEvaluationConfiguration.Builder.() -> Unit
 ): ResultWithDiagnostics<EvaluationResult> {
-    val actualConfiguration = createJvmCompilationConfigurationFromTemplate<T>()
+    val actualConfiguration = createJvmCompilationConfigurationFromTemplate<T>().with {
+
+    }
     return BasicJvmScriptingHost()
         .eval(source.toScriptSource(), actualConfiguration, ScriptEvaluationConfiguration(configure))
 }
