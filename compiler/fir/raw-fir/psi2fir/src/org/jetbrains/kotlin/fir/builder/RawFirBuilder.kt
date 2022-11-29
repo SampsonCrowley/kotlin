@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.fir.diagnostics.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock
+import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.references.builder.*
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
@@ -1003,7 +1004,7 @@ open class RawFirBuilder(
             }
         }
 
-        private fun convertScript(script: KtScript, containingFile: FirFileBuilder,): FirScript {
+        private fun convertScript(script: KtScript, containingFile: FirFileBuilder): FirScript {
             return buildScript {
                 source = script.toFirSourceElement()
                 moduleData = baseModuleData
@@ -1020,7 +1021,7 @@ open class RawFirBuilder(
                         }
                     }
                 }
-                baseSession.scriptConfiguratorService?.configure?.invoke(this)
+                baseSession.extensionService.scriptConfigurators.forEach { it.apply { configure(containingFile) } }
             }
         }
 

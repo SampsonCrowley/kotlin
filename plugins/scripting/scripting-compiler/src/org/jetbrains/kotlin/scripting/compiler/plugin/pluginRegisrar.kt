@@ -81,7 +81,10 @@ class ScriptingCompilerConfigurationComponentRegistrar : ComponentRegistrar {
 class ScriptingK2CompilerPluginRegistrar : CompilerPluginRegistrar() {
     companion object {
         fun registerComponents(extensionStorage: ExtensionStorage, compilerConfiguration: CompilerConfiguration) = with(extensionStorage) {
-            FirExtensionRegistrarAdapter.registerExtension(FirScriptingCompilerExtensionRegistrar())
+            val hostConfiguration = ScriptingHostConfiguration(defaultJvmScriptingHostConfiguration) {
+                // TODO: add jdk path and other params if needed
+            }
+            FirExtensionRegistrarAdapter.registerExtension(FirScriptingCompilerExtensionRegistrar(hostConfiguration, compilerConfiguration))
         }
     }
 
