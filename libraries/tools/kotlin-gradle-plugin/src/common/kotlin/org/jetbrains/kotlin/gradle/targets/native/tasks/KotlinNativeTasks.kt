@@ -255,6 +255,9 @@ abstract class AbstractKotlinNativeCompile<
     @Internal
     val compilerPluginOptions = CompilerPluginOptions()
 
+    @Internal
+    val version = project.version.toString()
+
     @get:Input
     val compilerPluginCommandLine
         get() = compilerPluginOptions.arguments
@@ -493,7 +496,7 @@ internal constructor(
             moduleName,
             shortModuleName,
             friendModule,
-            project.version.toString(),
+            version,
             createSharedCompilationDataOrNull(),
             sources.asFileTree,
             commonSourcesTree
@@ -824,7 +827,7 @@ open class CInteropProcess @Inject internal constructor(params: Params) : Defaul
             }
 
             // TODO: uncomment after advancing bootstrap.
-            //addArg("-libraryVersion", project.version.toString())
+            //addArg("-libraryVersion", version)
 
             addAll(extraOpts)
         }
