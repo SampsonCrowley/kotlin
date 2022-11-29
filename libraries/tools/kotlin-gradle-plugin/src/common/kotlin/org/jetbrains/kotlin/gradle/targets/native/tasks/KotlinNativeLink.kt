@@ -283,6 +283,9 @@ constructor(
     @Internal
     val compilerPluginOptions = CompilerPluginOptions()
 
+    @Internal
+    val gradleUserHomeDir = project.gradle.gradleUserHomeDir
+
     @Optional
     @Classpath
     open var compilerPluginClasspath: FileCollection? = null
@@ -310,7 +313,7 @@ constructor(
         val additionalOptions = mutableListOf<String>().apply {
             addAll(externalDependenciesArgs)
             if (konanCacheKind.get() != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
-                add("-Xauto-cache-from=${project.gradle.gradleUserHomeDir}")
+                add("-Xauto-cache-from=$gradleUserHomeDir")
             }
             if (logger.isInfoEnabled)
                 add("-verbose")
