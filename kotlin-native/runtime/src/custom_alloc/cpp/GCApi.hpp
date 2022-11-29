@@ -8,14 +8,12 @@
 #include <limits>
 #include <stdlib.h>
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 bool TryResetMark(void* ptr) noexcept;
 
-void* alloc(uint64_t size) noexcept;
+void* SafeAlloc(uint64_t size) noexcept;
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

@@ -7,8 +7,7 @@
 
 #include "AtomicStack.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 template<class T>
 class PageStore {
@@ -67,7 +66,6 @@ private:
     AtomicStack<T> unswept_;
 };
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

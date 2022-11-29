@@ -2,19 +2,19 @@
 
 #include "Cell.hpp"
 
+#include <cstdint>
 #include <cstring>
 
 #include "CustomLogging.hpp"
 #include "KAssert.h"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 Cell::Cell(uint32_t size) noexcept : isAllocated_(false), size_(size) {
     CustomAllocDebug("Cell@%p::Cell(%u)", this, size);
 }
 
-Cell* Cell::TryAllocate(uint32_t cellsNeeded) noexcept {
+uint64_t* Cell::TryAllocate(uint32_t cellsNeeded) noexcept {
     CustomAllocDebug("Cell@%p{ allocated = %d, size = %u }::TryAllocate(%u)",
             this, isAllocated_, size_, cellsNeeded);
     if (isAllocated_ || cellsNeeded > size_) {
@@ -29,7 +29,11 @@ Cell* Cell::TryAllocate(uint32_t cellsNeeded) noexcept {
     newBlock->size_ = cellsNeeded;
     RuntimeAssert(remainingSize == 0 || size_ + newBlock->size_ == oldSize,
             "sizes don't add up");
-    return newBlock;
+    return newBlock->Data(); // Payload starts after header
+}
+
+uint64_t* Cell::Data() noexcept {
+    return reinterpret_cast<uint64_t*>(this+1);
 }
 
 void Cell::Deallocate() noexcept {
@@ -39,5 +43,8 @@ void Cell::Deallocate() noexcept {
     isAllocated_ = false;
 }
 
-}  // namespace alloc
-}  // namespace kotlin
+Cell* Cell::Next() noexcept {
+    return this + size_;
+}
+
+}  // namespace kotlin::alloc

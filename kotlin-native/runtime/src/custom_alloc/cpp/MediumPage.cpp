@@ -8,14 +8,23 @@
 #include "CustomLogging.hpp"
 #include "GCApi.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
-Cell* MediumPage::TryAllocate(uint32_t blockSize) noexcept {
+MediumPage* MediumPage::Create(uint32_t cellCount) noexcept {
+    CustomAllocInfo("MediumPage::Create(%u)", cellCount);
+    RuntimeAssert(cellCount < MEDIUM_PAGE_CELL_COUNT, "cellCount is too large for medium page");
+    return new (SafeAlloc(MEDIUM_PAGE_SIZE)) MediumPage(cellCount);
+}
+
+MediumPage::MediumPage(uint32_t cellCount) noexcept : curBlock_(cells_), kZeroBlock_(0) {
+    cells_[0] = Cell(MEDIUM_PAGE_CELL_COUNT);
+}
+
+uint64_t* MediumPage::TryAllocate(uint32_t blockSize) noexcept {
     CustomAllocDebug("MediumPage@%p::TryAllocate(%u)", this, blockSize);
     // +1 accounts for header, since cell->size also includes header cell
     uint32_t cellsNeeded = blockSize + 1;
-    Cell* block = curBlock_->TryAllocate(cellsNeeded);
+    uint64_t* block = curBlock_->TryAllocate(cellsNeeded);
     if (block) return block;
     UpdateCurBlock(cellsNeeded);
     return curBlock_->TryAllocate(cellsNeeded);
@@ -72,5 +81,13 @@ void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
     curBlock_ = maxBlock;
 }
 
-}  // namespace alloc
-}  // namespace kotlin
+bool MediumPage::CheckInvariants() noexcept {
+    if (curBlock_ < &kZeroBlock_ || curBlock_ >= cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
+    for (Cell* cur = cells_;; cur = cur->Next()) {
+        if (cur->Next() <= cur) return false;
+        if (cur->Next() > cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
+        if (cur->Next() == cells_ + MEDIUM_PAGE_CELL_COUNT) return true;
+    }
+}
+
+}  // namespace kotlin::alloc

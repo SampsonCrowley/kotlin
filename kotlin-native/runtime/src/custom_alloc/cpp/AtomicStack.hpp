@@ -7,21 +7,15 @@
 
 #include "CustomLogging.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 template<class T>
 class AtomicStack {
 public:
-    ~AtomicStack() noexcept {
-        CustomAllocDebug("AtomicStack(%p)::~AtomicStack()", this);
-        T* page;
-        while ((page = Pop())) {
-            CustomAllocDebug("AtomicStack(%p) free(%p)", this, page);
-            free(page);
-        }
-    }
-
+    // Pop() is not fully thread-safe, in that the returned page must not be
+    // immediately freed, if another thread might be simultaneously Popping
+    // from the same stack. As of writing this comment, this is handled by only
+    // freeing pages during STW.
     T* Pop() noexcept {
         T* elm = stack_.load(std::memory_order_acquire);
         while (elm && !stack_.compare_exchange_weak(elm, elm->next_,
@@ -51,11 +45,20 @@ public:
         }
     }
 
+    // Should only be called during STW.
+    void FreeAllPages() noexcept {
+        CustomAllocDebug("AtomicStack(%p)::FreeAllPages()", this);
+        T* page;
+        while ((page = Pop())) {
+            CustomAllocDebug("AtomicStack(%p) free(%p)", this, page);
+            free(page);
+        }
+    }
+
 private:
     std::atomic<T*> stack_{nullptr};
 };
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

@@ -23,13 +23,12 @@ void mark(void* obj) {
 }
 
 uint64_t* alloc(MediumPage* page, uint32_t blockSize) {
-    Cell* cell = page->TryAllocate(blockSize);
+    uint64_t* ptr = page->TryAllocate(blockSize);
     if (!page->CheckInvariants()) {
         ADD_FAILURE();
         return nullptr;
     }
-    if (cell == nullptr) return nullptr;
-    uint64_t* ptr = reinterpret_cast<uint64_t*>(cell->Data());
+    if (ptr == nullptr) return nullptr;
     memset(ptr, 0, 8 * blockSize);
     ptr[1] = reinterpret_cast<uint64_t>(&fakeType);
     if (!page->CheckInvariants()) {

@@ -74,11 +74,7 @@ public:
     public:
         using ObjectData = ConcurrentMarkAndSweep::ObjectData;
 
-#ifndef CUSTOM_ALLOCATOR
         using Allocator = AllocatorWithGC<Allocator, ThreadData>;
-#else
-        using Allocator = AllocatorWithGC<alloc::CustomAllocator, ThreadData>;
-#endif
 
         explicit ThreadData(ConcurrentMarkAndSweep& gc, mm::ThreadData& threadData, GCSchedulerThreadData& gcScheduler) noexcept :
             gc_(gc), threadData_(threadData), gcScheduler_(gcScheduler) {}
@@ -94,14 +90,7 @@ public:
 
         void OnSuspendForGC() noexcept;
 
-#ifndef CUSTOM_ALLOCATOR
         Allocator CreateAllocator() noexcept { return Allocator(gc::Allocator(), *this); }
-#else
-        Allocator CreateAllocator() noexcept { 
-            RuntimeLogInfo({"ca"}, "ThreadData::CreateAllocator()");
-            return Allocator(alloc::CustomAllocator(gc_.heap_, gcScheduler_), *this);
-        }
-#endif
 
     private:
         friend ConcurrentMarkAndSweep;

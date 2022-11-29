@@ -4,15 +4,14 @@
 #define CUSTOM_ALLOC_CPP_MEDIUMPAGE_HPP_
 
 #include <atomic>
+#include <cstdint>
 
 #include "AtomicStack.hpp"
 #include "Cell.hpp"
 #include "CustomLogging.hpp"
-#include "GCApi.hpp"
 #include "KAssert.h"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 #define KiB 1024
 #define MEDIUM_PAGE_SIZE (256*KiB)
@@ -43,32 +42,21 @@ public:
     Iterator begin() noexcept { return Iterator(cells_); }
     Iterator end() noexcept { return Iterator(cells_ + MEDIUM_PAGE_CELL_COUNT); }
 
-    static MediumPage* Create(uint32_t cellCount) noexcept {
-        CustomAllocInfo("MediumPage::Create(%u)", cellCount);
-        RuntimeAssert(cellCount < MEDIUM_PAGE_CELL_COUNT, "cellCount is too large for medium page");
-        return new (alloc(MEDIUM_PAGE_SIZE)) MediumPage(cellCount);
-    }
+    static MediumPage* Create(uint32_t cellCount) noexcept;
 
     // Tries to allocate in current page, returns null if no free block in page is big enough
-    Cell* TryAllocate(uint32_t blockSize) noexcept;
+    uint64_t* TryAllocate(uint32_t blockSize) noexcept;
 
     bool Sweep() noexcept;
 
-    bool CheckInvariants() noexcept {
-        if (curBlock_ < &kZeroBlock_ || curBlock_ >= cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
-        for (Cell* cur = cells_;; cur = cur->Next()) {
-            if (cur->Next() <= cur) return false;
-            if (cur->Next() > cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
-            if (cur->Next() == cells_ + MEDIUM_PAGE_CELL_COUNT) return true;
-        }
-    }
+    // Testing method
+    bool CheckInvariants() noexcept;
 
 private:
-    MediumPage(uint32_t cellCount) noexcept : curBlock_(cells_), kZeroBlock_(0) {
-        cells_[0] = Cell(MEDIUM_PAGE_CELL_COUNT);
-    }
-
-    // Coalesces adjecent unallocated blocks and sets cur_block to the largest one.
+    MediumPage(uint32_t cellCount) noexcept;
+    
+    // Looks for a block big enough to hold cellsNeeded. If none big enough is
+    // found, update to the largest one.
     void UpdateCurBlock(uint32_t cellsNeeded) noexcept;
 
     friend class AtomicStack<MediumPage>;
@@ -78,7 +66,6 @@ private:
     Cell kZeroBlock_;  // simplifies code to have a dummy empty cell in the same address neighborhood
     Cell cells_[];
 };
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

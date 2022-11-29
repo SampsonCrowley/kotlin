@@ -8,8 +8,7 @@
 #include "CustomLogging.hpp"
 #include "ObjectFactory.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 bool TryResetMark(void* ptr) noexcept {
     using Node = typename kotlin::mm::
@@ -29,7 +28,7 @@ bool TryResetMark(void* ptr) noexcept {
     return true;
 }
 
-void* alloc(uint64_t size) noexcept {
+void* SafeAlloc(uint64_t size) noexcept {
     void* memory;
     if (size > std::numeric_limits<size_t>::max() || !(memory = malloc(size))) {
         konan::consoleErrorf("Out of memory trying to allocate %" PRIu64
@@ -39,5 +38,4 @@ void* alloc(uint64_t size) noexcept {
     return memory;
 }
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc

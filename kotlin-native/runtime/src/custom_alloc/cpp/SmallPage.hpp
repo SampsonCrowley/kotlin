@@ -8,8 +8,7 @@
 
 #include "AtomicStack.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 #define KiB 1024
 #define SMALL_PAGE_SIZE (256*KiB)
@@ -17,7 +16,7 @@ namespace alloc {
 #define SMALL_PAGE_CELL_COUNT ((SMALL_PAGE_SIZE-sizeof(kotlin::alloc::SmallPage))/sizeof(kotlin::alloc::SmallCell))
 
 struct alignas(8) SmallCell {
-    void* Data() { return this; }
+    uint64_t* Data() { return reinterpret_cast<uint64_t*>(this); }
 
     SmallCell* nextFree;
 };
@@ -45,7 +44,6 @@ private:
 
 static_assert(sizeof(SmallPage) % 8 == 0, "Page header size is not aligned");
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

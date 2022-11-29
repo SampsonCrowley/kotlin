@@ -3,6 +3,7 @@
 #include "CustomAllocator.hpp"
 
 #include <atomic>
+#include <cstdint>
 #include <cstdlib>
 #include <cinttypes>
 #include <new>
@@ -14,8 +15,7 @@
 #include "MediumPage.hpp"
 #include "SmallPage.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 using ObjectData = gc::ConcurrentMarkAndSweep::ObjectData;
 
@@ -44,6 +44,12 @@ uint64_t ArrayAllocatedDataSize(const TypeInfo* typeInfo, uint32_t count) noexce
     return AlignUp<uint64_t>(sizeof(HeapArrayHeader) + membersSize, kObjectAlignment);
 }
 
+CustomAllocator::CustomAllocator(Heap& heap, gc::GCSchedulerThreadData& gcScheduler)
+    noexcept : heap_(heap), gcScheduler_(gcScheduler), mediumPage_(nullptr) {
+        CustomAllocInfo("CustomAllocator::CustomAllocator(heap)");
+        memset(smallPages_, 0, sizeof(smallPages_));
+    }
+
 ObjHeader* CustomAllocator::CreateObject(const TypeInfo* typeInfo) noexcept {
     RuntimeAssert(!typeInfo->IsArray(), "Must not be an array");
     size_t allocSize = ObjectAllocatedDataSize(typeInfo);
@@ -61,6 +67,12 @@ ArrayHeader* CustomAllocator::CreateArray(const TypeInfo* typeInfo, uint32_t cou
     array->typeInfoOrMeta_ = const_cast<TypeInfo*>(typeInfo);
     array->count_ = count;
     return array;
+}
+
+void CustomAllocator::PrepareForGC() noexcept {
+    CustomAllocInfo("CustomAllocator@%p::PrepareForGC()", this);
+    mediumPage_ = nullptr;
+    memset(smallPages_, 0, sizeof(smallPages_));
 }
 
 void* CustomAllocator::Allocate(uint64_t size) noexcept {
@@ -81,21 +93,21 @@ void* CustomAllocator::Allocate(uint64_t size) noexcept {
 
 void* CustomAllocator::AllocateInLargePage(uint64_t cellCount) noexcept {
     CustomAllocDebug("CustomAllocator::AllocateInLargePage(%" PRIu64 ")", cellCount);
-    void* block = heap_.GetLargePage(cellCount)->Data();
+    void* block = heap_.GetLargePage(cellCount)->TryAllocate();
     return block;
 }
 
 void* CustomAllocator::AllocateInMediumPage(uint32_t cellCount) noexcept {
     CustomAllocDebug("CustomAllocator::AllocateInMediumPage(%u)", cellCount);
     if (mediumPage_) {
-        Cell* block = mediumPage_->TryAllocate(cellCount);
-        if (block) return block->Data();
+        uint64_t* block = mediumPage_->TryAllocate(cellCount);
+        if (block) return block;
     }
     CustomAllocDebug("Failed to allocate in curPage");
     while (true) {
         mediumPage_ = heap_.GetMediumPage(cellCount);
-        Cell* block = mediumPage_->TryAllocate(cellCount);
-        if (block) return block->Data();
+        uint64_t* block = mediumPage_->TryAllocate(cellCount);
+        if (block) return block;
     }
 }
 
@@ -117,5 +129,4 @@ void* CustomAllocator::AllocateInSmallPage(uint32_t cellCount) noexcept {
     return nullptr;
 }
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc

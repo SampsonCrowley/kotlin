@@ -7,7 +7,6 @@
 #include <cinttypes>
 #include <new>
 
-#include "CustomAllocator.hpp"
 #include "CustomLogging.hpp"
 #include "LargePage.hpp"
 #include "MediumPage.hpp"
@@ -15,8 +14,7 @@
 #include "ThreadRegistry.hpp"
 #include "GCImpl.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 void Heap::PrepareForGC() noexcept {
     CustomAllocDebug("Heap::PrepareForGC()");
@@ -54,5 +52,5 @@ LargePage* Heap::GetLargePage(uint64_t cellCount) noexcept {
     CustomAllocInfo("CustomAllocator::AllocateInLargePage(%" PRIu64 ")", cellCount);
     return largePages_.NewPage(cellCount);
 }
-}  // namespace alloc
-}  // namespace kotlin
+
+}  // namespace kotlin::alloc

@@ -4,40 +4,31 @@
 #define CUSTOM_ALLOC_CPP_LARGEPAGE_HPP_
 
 #include <atomic>
+#include <cstdint>
 
 #include "AtomicStack.hpp"
-#include "CustomLogging.hpp"
-#include "GCApi.hpp"
 #include "MediumPage.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 #define LARGE_PAGE_SIZE_THRESHOLD (MEDIUM_PAGE_CELL_COUNT-1)
 
 class alignas(8) LargePage {
 public:
-    static LargePage* Create(uint64_t cellCount) noexcept {
-        CustomAllocInfo("LargePage::Create(%" PRIu64 ")", cellCount);
-        RuntimeAssert(cellCount > LARGE_PAGE_SIZE_THRESHOLD,
-                "blockSize too small for large page");
-        uint64_t size = sizeof(LargePage) + cellCount * sizeof(uint64_t);
-        return new (alloc(size)) LargePage();
-    }
+    static LargePage* Create(uint64_t cellCount) noexcept;
 
-    void* Data() noexcept { return this + 1; }
+    uint64_t* TryAllocate() noexcept;
 
-    bool Sweep() noexcept {
-        CustomAllocDebug("LargePage@%p::Sweep()", this);
-        return TryResetMark(Data());
-    }
+    uint64_t* Data() noexcept;
+
+    bool Sweep() noexcept;
 
 private:
     friend class AtomicStack<LargePage>;
     LargePage* next_;
+    bool isAllocated_ = false;
 };
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

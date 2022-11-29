@@ -22,7 +22,7 @@ void mark(void* obj) {
 
 LargePage* alloc(uint64_t blockSize) {
     LargePage* page = LargePage::Create(blockSize);
-    uint64_t* ptr = reinterpret_cast<uint64_t*>(page->Data());
+    uint64_t* ptr = page->TryAllocate();
     memset(ptr, 0, 8 * blockSize);
     ptr[1] = reinterpret_cast<uint64_t>(&fakeType);
     return page;

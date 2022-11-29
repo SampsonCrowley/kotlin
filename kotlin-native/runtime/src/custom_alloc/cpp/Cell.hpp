@@ -6,8 +6,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 // All allocations are whole units of cells.
 class Cell {
@@ -16,19 +15,16 @@ public:
 
     // Allocate `cellsNeeded` blocks at the end of this block, possibly the
     // whole block, or null if it doesn't fit.
-    Cell* TryAllocate(uint32_t cellsNeeded) noexcept;
+    uint64_t* TryAllocate(uint32_t cellsNeeded) noexcept;
+
+    // Returns the pointer to the payload
+    uint64_t* Data() noexcept;
 
     // Marks block as no longer allocated.
     void Deallocate() noexcept;
 
-    // Returns the address for the client memory payload.
-    Cell* Data() noexcept { return this + 1; }
-
-    // Reverse of Data(); returns the header of a given payload address.
-    Cell* Header() noexcept { return this - 1; }
-
     // The next block.
-    Cell* Next() noexcept { return this + size_; }
+    Cell* Next() noexcept;
 
 private:
     friend class MediumPage;
@@ -39,7 +35,6 @@ private:
 
 static_assert(sizeof(Cell) == 8, "Cell size is wrong");
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

@@ -9,13 +9,12 @@
 #include "CustomLogging.hpp"
 #include "GCApi.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 SmallPage* SmallPage::Create(uint32_t blockSize) noexcept {
     CustomAllocInfo("SmallPage::Create(%u)", blockSize);
     RuntimeAssert(blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE, "blockSize too large for small page");
-    return new (alloc(SMALL_PAGE_SIZE)) SmallPage(blockSize);
+    return new (SafeAlloc(SMALL_PAGE_SIZE)) SmallPage(blockSize);
 }
 
 SmallPage::SmallPage(uint32_t blockSize) noexcept : blockSize_(blockSize) {
@@ -64,5 +63,4 @@ bool SmallPage::Sweep() noexcept {
     return alive;
 }
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc

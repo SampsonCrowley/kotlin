@@ -11,8 +11,7 @@
 #include "PageStore.hpp"
 #include "SmallPage.hpp"
 
-namespace kotlin {
-namespace alloc {
+namespace kotlin::alloc {
 
 class Heap {
 public:
@@ -34,7 +33,6 @@ private:
     PageStore<LargePage> largePages_;
 };
 
-}  // namespace alloc
-}  // namespace kotlin
+}  // namespace kotlin::alloc
 
 #endif

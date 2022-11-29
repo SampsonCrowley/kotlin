@@ -43,7 +43,7 @@ TEST(CustomAllocTest, HeapReuseMediumPages) {
     Heap heap;
     const uint32_t BLOCKSIZE = SMALL_PAGE_MAX_BLOCK_SIZE + 42;
     MediumPage* page = heap.GetMediumPage(BLOCKSIZE);
-    void* obj = page->TryAllocate(BLOCKSIZE)->Data();
+    void* obj = page->TryAllocate(BLOCKSIZE);
     mark(obj);  // to make the page survive a sweep
     heap.PrepareForGC();
     heap.Sweep();
