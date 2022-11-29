@@ -105,7 +105,7 @@ class CacheSupport(
         systemCacheDirectory.takeIf { autoCacheableFrom.isNotEmpty() }?.let { add(it) }
     }
 
-    internal fun tryGetImplicitOutput(cacheDeserializationStrategy: CacheDeserializationStrategy): String? {
+    internal fun tryGetImplicitOutput(cacheDeserializationStrategy: CacheDeserializationStrategy?): String? {
         val libraryToCache = libraryToCache ?: return null
         // Put the resulting library in the first cache directory.
         val cacheDirectory = implicitCacheDirectories.firstOrNull() ?: return null
