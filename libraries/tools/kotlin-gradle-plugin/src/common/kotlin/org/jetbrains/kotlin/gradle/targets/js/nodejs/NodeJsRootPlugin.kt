@@ -64,8 +64,23 @@ open class NodeJsRootPlugin : Plugin<Project> {
 
         val rootClean = project.rootProject.tasks.named(BasePlugin.CLEAN_TASK_NAME)
 
+        val gradleNodeModulesProvider: Provider<GradleNodeModulesCache> =
+            project.gradle.sharedServices.registerIfAbsent("gradle-node-modules", GradleNodeModulesCache::class.java) {
+                it.parameters.cacheDir.set(nodeJs.nodeModulesGradleCacheDir)
+                it.parameters.rootProjectDir.set(project.projectDir)
+            }
+
+        val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache> =
+            project.gradle.sharedServices.registerIfAbsent("composite-node-modules", CompositeNodeModulesCache::class.java) {
+                it.parameters.cacheDir.set(nodeJs.nodeModulesGradleCacheDir)
+                it.parameters.rootProjectDir.set(project.projectDir)
+            }
+
         val setupFileHasherTask = project.registerTask<KotlinNpmCachesSetup>(KotlinNpmCachesSetup.NAME) {
             it.description = "Setup file hasher for caches"
+
+            it.gradleNodeModules.set(gradleNodeModulesProvider)
+            it.compositeNodeModules.set(compositeNodeModulesProvider)
         }
 
         val kotlinNpmInstallTask = project.registerTask<KotlinNpmInstallTask>(KotlinNpmInstallTask.NAME) {
@@ -93,36 +108,24 @@ open class NodeJsRootPlugin : Plugin<Project> {
             yarnExtension.resolutions
         }
 
-        val taskRequirements = project.provider {
-            println("INSIDE TASK REQUIREMENTS")
-            nodeJs.taskRequirements
-        }
-
-        val gradleNodeModulesProvider: Provider<GradleNodeModulesCache> =
-            project.gradle.sharedServices.registerIfAbsent("gradle-node-modules", GradleNodeModulesCache::class.java) {
-                it.parameters.cacheDir.set(nodeJs.nodeModulesGradleCacheDir)
-                it.parameters.rootProjectDir.set(project.projectDir)
-            }
-
-        val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache> =
-            project.gradle.sharedServices.registerIfAbsent("composite-node-modules", CompositeNodeModulesCache::class.java) {
-                it.parameters.cacheDir.set(nodeJs.nodeModulesGradleCacheDir)
-                it.parameters.rootProjectDir.set(project.projectDir)
-            }
+//        val taskRequirements = project.provider {
+//            println("INSIDE TASK REQUIREMENTS")
+//            nodeJs.taskRequirements
+//        }
 
         nodeJs.resolver = KotlinRootNpmResolver(
             project.name,
             project.version.toString(),
-            nodeJs.taskRequirements,
+            TasksRequirements(),
             nodeJs.versions,
             nodeJs.projectPackagesDir,
             nodeJs.rootProjectDir,
 //        parameters.nodeJs,
 //        parameters.yarn,
 //        buildServiceRegistry,
-            gradleNodeModulesProvider,
-            compositeNodeModulesProvider,
-            MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project),
+//            gradleNodeModulesProvider,
+//            compositeNodeModulesProvider,
+//            MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project),
 //        yarnEnvironment_,
 //        npmEnvironment_,
 //        yarnResolutions_
@@ -139,9 +142,9 @@ open class NodeJsRootPlugin : Plugin<Project> {
 //                it.parameters.rootProjectDir.set(nodeJs.rootProjectDir)
 ////                it.parameters.nodeJs.set(nodeJs)
 ////                it.parameters.yarn.set(yarnExtension)
-//                it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
-//                it.parameters.compositeNodeModulesProvider.set(compositeNodeModulesProvider)
-//                it.parameters.mayBeUpToDateTasksRegistry.set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))
+                it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
+                it.parameters.compositeNodeModulesProvider.set(compositeNodeModulesProvider)
+                it.parameters.mayBeUpToDateTasksRegistry.set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))
             }
 
         kotlinNpmInstallTask.configure {

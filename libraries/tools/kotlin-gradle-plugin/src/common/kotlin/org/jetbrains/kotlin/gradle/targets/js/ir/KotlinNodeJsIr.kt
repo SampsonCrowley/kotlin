@@ -64,7 +64,7 @@ abstract class KotlinNodeJsIr @Inject constructor(target: KotlinJsIrTarget) :
                 test.useMocha { }
             }
             if (test.enabled) {
-                nodeJs.taskRequirements.get().addTaskRequirements(test)
+                nodeJs.taskRequirements.addTaskRequirements(test)
             }
         } else {
             test.testFramework = KotlinWasmNode(test)

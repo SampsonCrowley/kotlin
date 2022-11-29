@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.RequiresNpmDependencies
 import org.jetbrains.kotlin.gradle.targets.js.npm.toDeclaration
 import java.io.Serializable
 
-abstract class TasksRequirements : BuildService<BuildServiceParameters.None> {
+class TasksRequirements : Serializable {
     private val _byTask = mutableMapOf<String, Set<RequiredKotlinJsDependency>>()
     private val byCompilation = mutableMapOf<String, MutableSet<NpmDependencyDeclaration>>()
 

@@ -28,7 +28,7 @@ class NpmResolverPlugin : Plugin<Project> {
                         // KotlinJsTest delegates npm dependencies to testFramework,
                         // which can be defined after this configure action
                         if (task !is KotlinJsTest) {
-                            nodeJs.taskRequirements.get().addTaskRequirements(task)
+                            nodeJs.taskRequirements.addTaskRequirements(task)
                         }
                         task.dependsOn(
                             kotlinNodeJsTaskProvidersExtension.npmInstallTaskProvider,

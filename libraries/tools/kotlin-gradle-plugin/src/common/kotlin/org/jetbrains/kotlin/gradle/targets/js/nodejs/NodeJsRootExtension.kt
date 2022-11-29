@@ -46,10 +46,8 @@ open class NodeJsRootExtension(
 
     var packageManager: NpmApi by Property(Yarn())
 
-    val taskRequirements: Provider<TasksRequirements> = sharedServices.registerIfAbsent(
-        "kotlin-npm-tasks-requirements",
-        TasksRequirements::class.java
-    ) {}
+    val taskRequirements: TasksRequirements
+        get() = resolver.tasksRequirements
 
     lateinit var resolver: KotlinRootNpmResolver
 

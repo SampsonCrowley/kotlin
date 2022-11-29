@@ -91,9 +91,9 @@ abstract class KotlinNpmResolutionManager internal constructor(
 //        val rootProjectDir: Property<File>
 ////        val nodeJs: Property<NodeJsRootExtension>
 ////        val yarn: Property<YarnRootExtension>
-//        val gradleNodeModulesProvider: Property<GradleNodeModulesCache>
-//        val compositeNodeModulesProvider: Property<CompositeNodeModulesCache>
-//        val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
+        val gradleNodeModulesProvider: Property<GradleNodeModulesCache>
+        val compositeNodeModulesProvider: Property<CompositeNodeModulesCache>
+        val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
     }
 
 //    val resolver = KotlinRootNpmResolver(
@@ -228,7 +228,14 @@ abstract class KotlinNpmResolutionManager internal constructor(
                     when (state1) {
                         is ResolutionState.Prepared -> state1.preparedInstallation
                         is ResolutionState.Configuring -> {
-                            state1.resolver.prepareInstallation(logger, npmEnvironment, yarnEnvironment).also {
+                            state1.resolver.prepareInstallation(
+                                logger,
+                                npmEnvironment,
+                                yarnEnvironment,
+                                parameters.gradleNodeModulesProvider,
+                                parameters.compositeNodeModulesProvider,
+                                parameters.mayBeUpToDateTasksRegistry
+                            ).also {
                                 this.state = ResolutionState.Prepared(it)
                             }
                         }

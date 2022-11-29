@@ -6,19 +6,19 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject.Companion.PACKAGE_JSON
+import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.MayBeUpToDatePackageJsonTasksRegistry
 import org.jetbrains.kotlin.gradle.utils.property
 import java.io.File
 import javax.inject.Inject
 
-open class PublicPackageJsonTask
+abstract class PublicPackageJsonTask
 @Inject
 constructor(
     @Transient
@@ -35,6 +35,15 @@ constructor(
 
     private val packageJsonHandlers = compilation.packageJsonHandlers
 
+    @get:Internal
+    internal abstract val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
+
+    @get:Internal
+    internal abstract val gradleNodeModules: Property<GradleNodeModulesCache>
+
+    @get:Internal
+    internal abstract val compositeNodeModules: Property<CompositeNodeModulesCache>
+
     @get:Input
     val packageJsonCustomFields: Map<String, Any?>
         get() = PackageJson(fakePackageJsonValue, fakePackageJsonValue)
@@ -45,11 +54,20 @@ constructor(
     private val compilationResolver
         get() = resolutionManager.get().resolver.get()[projectPath][compilationName]
 
-    private val compilationResolution
-        get() = compilationResolver.getResolutionOrResolveIfForced() ?: error("Compilation resolution isn't available")
+    private val confCompResolver
+        get() = nodeJs.let {
+            it.resolver[projectPath][compilationName]
+        }
 
-    @get:Nested
-    internal val externalDependencies: Collection<NpmDependencyDeclaration>
+    private val compilationResolution
+        get() = compilationResolver.getResolutionOrResolveIfForced(
+            gradleNodeModules,
+            compositeNodeModules,
+            mayBeUpToDateTasksRegistry
+        ) ?: error("Compilation resolution isn't available")
+
+    @get:Input
+    val externalDependencies: Collection<NpmDependencyDeclaration>
         get() = compilationResolution.externalNpmDependencies
 
     private val publicPackageJsonTaskName by lazy {

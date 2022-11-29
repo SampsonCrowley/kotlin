@@ -7,25 +7,19 @@ package org.jetbrains.kotlin.gradle.targets.js.npm.resolver
 
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
-import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
 import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
 import org.jetbrains.kotlin.gradle.targets.js.npm.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinRootNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnEnv
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnResolution
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.toVersionString
-import org.jetbrains.kotlin.gradle.utils.unavailableValueError
 import java.io.File
 import java.io.Serializable
 
@@ -39,8 +33,8 @@ import java.io.Serializable
 class KotlinRootNpmResolver internal constructor(
     val rootProjectName: String,
     val rootProjectVersion: String,
-    @Transient
-    val tasksRequirements: Provider<TasksRequirements>,
+//    @Transient
+    val tasksRequirements: TasksRequirements,
     val versions: NpmVersions,
     val projectPackagesDir: File,
     val rootProjectDir: File,
@@ -49,12 +43,12 @@ class KotlinRootNpmResolver internal constructor(
 //    val yarn: Provider<YarnRootExtension>,
 //    @Transient
 //    val buildServiceRegistry: BuildServiceRegistry,
-    @Transient
-    val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
-    @Transient
-    val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
-    @Transient
-    val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+//    @Transient
+//    val gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
+//    @Transient
+//    val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
+//    @Transient
+//    val mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
 //    @Transient
 //    val yarnEnvironment_: Provider<YarnEnv>?,
 //    @Transient
@@ -102,11 +96,11 @@ class KotlinRootNpmResolver internal constructor(
 //                it.parameters.rootProjectDir.set(rootProject_.projectDir)
 //            }
 
-    internal val gradleNodeModules: GradleNodeModulesCache
-        get() = gradleNodeModulesProvider.get()/*.also {
-            it.archiveOperations = archiveOperations
-            it.fs = fs
-        }*/
+//    internal val gradleNodeModules: GradleNodeModulesCache
+//        get() = gradleNodeModulesProvider.get()/*.also {
+//            it.archiveOperations = archiveOperations
+//            it.fs = fs
+//        }*/
 
 //    internal val compositeNodeModulesProvider: Provider<CompositeNodeModulesCache> =
 //        rootProject_
@@ -115,8 +109,8 @@ class KotlinRootNpmResolver internal constructor(
 //                it.parameters.rootProjectDir.set(rootProject_.projectDir)
 //            }
 
-    internal val compositeNodeModules: CompositeNodeModulesCache
-        get() = compositeNodeModulesProvider.get()
+//    internal val compositeNodeModules: CompositeNodeModulesCache
+//        get() = compositeNodeModulesProvider.get()
 
 //    @Transient
     private val projectResolvers_: MutableMap<String, KotlinProjectNpmResolver> = mutableMapOf()
@@ -257,12 +251,18 @@ class KotlinRootNpmResolver internal constructor(
         logger: Logger,
         npmEnvironment: NpmEnvironment,
         yarnEnvironment: YarnEnv,
+        gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
+        compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
+        mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
     ): Installation {
         synchronized(projectResolvers) {
             state = RootResolverState.PROJECTS_CLOSED
 
+            val gradleNodeModules = gradleNodeModulesProvider.get()
+            val compositeNodeModules = compositeNodeModulesProvider.get()
+
             val projectResolutions = projectResolvers.values
-                .map { it.close() }
+                .map { it.close(gradleNodeModulesProvider, compositeNodeModulesProvider, mayBeUpToDateTasksRegistry) }
                 .associateBy { it.project }
             val allNpmPackages = projectResolutions.values.flatMap { it.npmProjects }
 
