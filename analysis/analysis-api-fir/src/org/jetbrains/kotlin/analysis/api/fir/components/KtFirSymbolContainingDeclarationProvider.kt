@@ -54,7 +54,7 @@ internal class KtFirSymbolContainingDeclarationProvider(
             }
 
             is KtValueParameterSymbol -> {
-                firSymbolBuilder.callableBuilder.buildCallableSymbol(symbol.firSymbol.fir.containingFunctionSymbol)
+                firSymbolBuilder.callableBuilder.buildCallableSymbol(symbol.firSymbol.fir.containingFunctionSymbol!!)
             }
 
             is KtCallableSymbol -> {
