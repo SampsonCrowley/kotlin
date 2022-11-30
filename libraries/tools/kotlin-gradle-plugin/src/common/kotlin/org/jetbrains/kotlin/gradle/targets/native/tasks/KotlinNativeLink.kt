@@ -319,10 +319,14 @@ constructor(
         val executionContext = KotlinToolRunner.GradleExecutionContext.fromTaskContext(objectFactory, execOperations, logger)
         val additionalOptions = mutableListOf<String>().apply {
             addAll(externalDependenciesArgs)
-            addAll(CacheBuilder(
-                settings = cacheBuilderSettings,
-                konanPropertiesService = konanPropertiesService.get()
-            ).buildCompilerArgs())
+//            addAll(CacheBuilder(
+//                settings = cacheBuilderSettings,
+//                konanPropertiesService = konanPropertiesService.get()
+//            ).buildCompilerArgs())
+            if (cacheBuilderSettings.konanCacheKind != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
+                add("-Xauto-cache-from=${cacheBuilderSettings.gradleUserHomeDir}")
+            }
+
 //            if (konanCacheKindNotLazy != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
 //                add("-Xauto-cache-from=$gradleUserHomeDir")
 //            }
