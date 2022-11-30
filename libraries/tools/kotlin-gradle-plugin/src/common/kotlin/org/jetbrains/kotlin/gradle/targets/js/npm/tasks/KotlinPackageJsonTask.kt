@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
@@ -26,6 +28,7 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.PACKAGE_JSON_UMBRELLA
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.utils.getValue
 import java.io.File
+import javax.inject.Inject
 
 abstract class KotlinPackageJsonTask : DefaultTask() {
 
@@ -50,6 +53,9 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
 
     @Transient
     private lateinit var compilation: KotlinJsCompilation
+
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
 
     @get:Internal
     internal abstract val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
@@ -112,7 +118,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     @get:NormalizeLineEndings
     @get:InputFiles
     internal val internalCompositeDependencies: Collection<File> by lazy {
-        producer.run {
+        confCompResolver.packageJsonProducer.run {
             internalCompositeDependencies.flatMap { it.getPackages() }
         }
     }
@@ -122,7 +128,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     @get:NormalizeLineEndings
     @get:InputFiles
     internal val externalGradleDependencies: Collection<File> by lazy {
-        producer.externalGradleDependencies.map { it.file }
+        confCompResolver.packageJsonProducer.externalGradleDependencies.map { it.file }
     }
 
     @get:Input
