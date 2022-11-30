@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.gradle.targets.native.internal.isAllowCommonizer
 import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 import org.jetbrains.kotlin.gradle.utils.*
 import org.jetbrains.kotlin.konan.CompilerVersion
+import org.jetbrains.kotlin.konan.library.KLIB_INTEROP_IR_PROVIDER_IDENTIFIER
 import org.jetbrains.kotlin.konan.properties.saveToFile
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind.*
@@ -681,6 +682,58 @@ internal class ExternalDependenciesBuilder(
                 val dependencies = buildDependencies().sortedBy { it.id.toString() }
                 writeDependenciesFile(dependencies, deleteOnExit = false)
             }
+        }
+    }
+}
+
+internal class CacheBuilder(
+    private val settings: Settings,
+    private val konanPropertiesService: KonanPropertiesBuildService,
+) {
+    class Settings(
+        val konanCacheKind: NativeCacheKind,
+        val libraries: FileCollection,
+        val gradleUserHomeDir: File,
+        val binary: NativeBinary,
+        val konanTarget: KonanTarget,
+        val toolOptions: KotlinCommonCompilerToolOptions,
+    ) {
+        companion object {
+            fun createWithProject(
+                project: Project,
+                binary: NativeBinary,
+                konanTarget: KonanTarget,
+                toolOptions: KotlinCommonCompilerToolOptions,
+            ): Settings {
+                val konanCacheKind = project.getKonanCacheKind(konanTarget)
+                return Settings(
+                    konanCacheKind = konanCacheKind,
+                    libraries = binary.compilation.compileDependencyFiles.filterOutPublishableInteropLibs(project),
+                    gradleUserHomeDir = project.gradle.gradleUserHomeDir,
+                    binary, konanTarget, toolOptions
+                )
+            }
+        }
+    }
+
+    private val binary: NativeBinary
+        get() = settings.binary
+
+    private val konanTarget: KonanTarget
+        get() = settings.konanTarget
+
+    private val optimized: Boolean
+        get() = binary.optimized
+
+    private val konanCacheKind: NativeCacheKind
+        get() = settings.konanCacheKind
+
+    private val gradleUserHomeDir: File
+        get() = settings.gradleUserHomeDir
+
+    fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
+        if (konanCacheKind != NativeCacheKind.NONE && !optimized && konanPropertiesService.cacheWorksFor(konanTarget)) {
+            add("-Xauto-cache-from=$gradleUserHomeDir")
         }
     }
 }

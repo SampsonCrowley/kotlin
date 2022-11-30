@@ -115,8 +115,8 @@ constructor(
         project.getKonanCacheKind(konanTarget)
     }
 
-    @Internal
-    private val konanCacheKindNotLazy = konanCacheKind.get()
+//    @Internal
+//    private val konanCacheKindNotLazy = konanCacheKind.get()
 
     @get:Input
     internal val useEmbeddableCompilerJar: Boolean
@@ -202,6 +202,10 @@ constructor(
 
     @get:Internal
     val apiFiles = project.files(project.configurations.getByName(compilation.apiConfigurationName)).filterKlibsPassedToCompiler()
+
+    private val cacheBuilderSettings by lazy {
+        CacheBuilder.Settings.createWithProject(project, binary, konanTarget, toolOptions)
+    }
 
     private val externalDependenciesArgs by lazy { ExternalDependenciesBuilder(project, compilation).buildCompilerArgs() }
 
@@ -315,9 +319,13 @@ constructor(
         val executionContext = KotlinToolRunner.GradleExecutionContext.fromTaskContext(objectFactory, execOperations, logger)
         val additionalOptions = mutableListOf<String>().apply {
             addAll(externalDependenciesArgs)
-            if (konanCacheKindNotLazy != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
-                add("-Xauto-cache-from=$gradleUserHomeDir")
-            }
+            addAll(CacheBuilder(
+                settings = cacheBuilderSettings,
+                konanPropertiesService = konanPropertiesService.get()
+            ).buildCompilerArgs())
+//            if (konanCacheKindNotLazy != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
+//                add("-Xauto-cache-from=$gradleUserHomeDir")
+//            }
             if (logger.isInfoEnabled)
                 add("-verbose")
         }
