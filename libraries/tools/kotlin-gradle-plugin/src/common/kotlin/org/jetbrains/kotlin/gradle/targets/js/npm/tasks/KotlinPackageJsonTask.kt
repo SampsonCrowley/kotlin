@@ -102,43 +102,10 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
             .sorted()
     }
 
-    @get:Input
-    internal val internalDependencies: Collection<String> by lazy {
-        producer.internalDependencies.map { it.projectName }
+    @get:Nested
+    internal val producerInputs: KotlinCompilationNpmResolver.PackageJsonProducerInputs by lazy {
+        confCompResolver.packageJsonProducer.inputs
     }
-
-    @get:PathSensitive(PathSensitivity.ABSOLUTE)
-    @get:IgnoreEmptyDirectories
-    @get:NormalizeLineEndings
-    @get:InputFiles
-    internal val internalCompositeDependencies: Collection<File> by lazy {
-        producer.run {
-            internalCompositeDependencies.flatMap { it.getPackages() }
-        }
-    }
-
-    @get:PathSensitive(PathSensitivity.ABSOLUTE)
-    @get:IgnoreEmptyDirectories
-    @get:NormalizeLineEndings
-    @get:InputFiles
-    internal val externalGradleDependencies: Collection<File> by lazy {
-        producer.externalGradleDependencies.map { it.file }
-    }
-
-    @get:Input
-    internal val externalNpmDependencies: Collection<String> by lazy {
-        producer.externalNpmDependencies.map { it.uniqueRepresentation() }
-    }
-
-    @get:Input
-    internal val fileCollectionDependencies: Collection<File> by lazy {
-        producer.fileCollectionDependencies.flatMap { it.files }
-    }
-
-//    @get:Nested
-//    internal val producerInputs: KotlinCompilationNpmResolver.PackageJsonProducerInputs by lazy {
-//        producer.inputs
-//    }
 
     @get:OutputFile
     val packageJson: File by lazy {
