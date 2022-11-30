@@ -271,6 +271,7 @@ class NativeIrLinkerIssuesIT : BaseGradleIT() {
 
                 val errorMessage = ERROR_LINE_REGEX.findAll(getOutputForTask("linkDebugExecutableNative"))
                     .map { matchResult -> matchResult.groupValues[1] }
+                    .filterNot { it.startsWith("w:") || it.startsWith("v:") || it.startsWith("i:") }
                     .map { line -> line.replace(kotlinNativeTargetName, MASKED_TARGET_NAME) }
                     .map { line ->
                         line.replace(COMPRESSED_PLATFORM_LIBS_REGEX) { result ->
