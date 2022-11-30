@@ -323,7 +323,8 @@ constructor(
 //                settings = cacheBuilderSettings,
 //                konanPropertiesService = konanPropertiesService.get()
 //            ).buildCompilerArgs())
-            if (cacheBuilderSettings.konanCacheKind != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
+            //if (cacheBuilderSettings.konanCacheKind != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
+            if (konanCacheKind.get() != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
                 add("-Xauto-cache-from=${cacheBuilderSettings.gradleUserHomeDir}")
             }
 
