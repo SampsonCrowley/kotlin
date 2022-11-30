@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
+import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fir.AbstractFirAnalyzerFacade
 import org.jetbrains.kotlin.fir.FirAnalyzerFacade
 import org.jetbrains.kotlin.fir.FirSession
@@ -79,12 +80,17 @@ class Fir2IrJsResultsConverter(
             configuration.get(CommonConfigurationKeys.METADATA_VERSION)
                 ?: GenerationState.LANGUAGE_TO_METADATA_VERSION.getValue(module.languageVersionSettings.languageVersion)
 
+        // Up to this point, the FIR file resolve phase is RAW_FIR. To determine whether the backend input has errors, we need to resolve
+        // and check all FIR files.
+        val diagnosticsMap = inputArtifact.firAnalyzerFacade.runCheckers()
+        val hasErrors = diagnosticsMap.any { entry -> entry.value.any { it.severity == Severity.ERROR } }
+
         return IrBackendInput.JsIrBackendInput(
             irModuleFragment,
             sourceFiles,
             icData,
             expectDescriptorToSymbol,
-            hasErrors = false // TODO: implement error check
+            hasErrors,
         ) { file ->
             val firFile = firFilesBySourceFile[file] ?: error("cannot find FIR file by source file ${file.name} (${file.path})")
             serializeSingleFirFile(firFile, components.session, components.scopeSession, metadataVersion)
