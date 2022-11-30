@@ -203,8 +203,10 @@ constructor(
     @get:Internal
     val apiFiles = project.files(project.configurations.getByName(compilation.apiConfigurationName)).filterKlibsPassedToCompiler()
 
-    private val cacheBuilderSettings by lazy {
-        CacheBuilder.Settings.createWithProject(project, binary, konanTarget, toolOptions)
+    private class CacheSettings(val konanCacheKind: NativeCacheKind, val gradleUserHomeDir: File)
+
+    private val cacheSettings by lazy {
+        CacheSettings(project.getKonanCacheKind(konanTarget), project.gradle.gradleUserHomeDir)
     }
 
     private val externalDependenciesArgs by lazy { ExternalDependenciesBuilder(project, compilation).buildCompilerArgs() }
@@ -290,9 +292,6 @@ constructor(
     @Internal
     val compilerPluginOptions = CompilerPluginOptions()
 
-    @Internal
-    val gradleUserHomeDir = project.gradle.gradleUserHomeDir
-
     @Optional
     @Classpath
     open var compilerPluginClasspath: FileCollection? = null
@@ -319,18 +318,10 @@ constructor(
         val executionContext = KotlinToolRunner.GradleExecutionContext.fromTaskContext(objectFactory, execOperations, logger)
         val additionalOptions = mutableListOf<String>().apply {
             addAll(externalDependenciesArgs)
-//            addAll(CacheBuilder(
-//                settings = cacheBuilderSettings,
-//                konanPropertiesService = konanPropertiesService.get()
-//            ).buildCompilerArgs())
-            //if (cacheBuilderSettings.konanCacheKind != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
-            if (konanCacheKind.get() != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
-                add("-Xauto-cache-from=${cacheBuilderSettings.gradleUserHomeDir}")
+            if (cacheSettings.konanCacheKind != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
+                add("-Xauto-cache-from=${cacheSettings.gradleUserHomeDir}")
             }
 
-//            if (konanCacheKindNotLazy != NativeCacheKind.NONE && !optimized && konanPropertiesService.get().cacheWorksFor(konanTarget)) {
-//                add("-Xauto-cache-from=$gradleUserHomeDir")
-//            }
             if (logger.isInfoEnabled)
                 add("-verbose")
         }
