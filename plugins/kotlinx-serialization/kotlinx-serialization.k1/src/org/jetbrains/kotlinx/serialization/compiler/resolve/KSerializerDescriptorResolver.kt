@@ -78,7 +78,7 @@ object KSerializerDescriptorResolver {
             thisDescriptor, SERIALIZER_CLASS_NAME, thisDescriptor.source,
             scope,
             Modality.FINAL, DescriptorVisibilities.PUBLIC,
-            Annotations.create(listOf(createDeprecatedHiddenAnnotation(thisDescriptor.module))),
+            Annotations.create(listOfNotNull(createDeprecatedHiddenAnnotation(thisDescriptor.module), thisDescriptor.jsExportIgnore())),
             DescriptorVisibilities.PRIVATE,
             serializerKind, false
         )
@@ -208,7 +208,7 @@ object KSerializerDescriptorResolver {
         needBackingField: Boolean = false
     ): PropertyDescriptor {
         val propertyDescriptor = PropertyDescriptorImpl.create(
-            thisDescriptor, Annotations.EMPTY, modality, visibility, false, name,
+            thisDescriptor, Annotations.create(listOfNotNull(thisDescriptor.jsExportIgnore())), modality, visibility, false, name,
             CallableMemberDescriptor.Kind.SYNTHESIZED, thisDescriptor.source, false, false, false, false, false, false
         )
 
@@ -222,12 +222,12 @@ object KSerializerDescriptorResolver {
         )
 
         val propertyGetter = PropertyGetterDescriptorImpl(
-            propertyDescriptor, Annotations.EMPTY, modality, visibility, false, false, false,
+            propertyDescriptor, Annotations.create(listOfNotNull(thisDescriptor.jsExportIgnore())), modality, visibility, false, false, false,
             CallableMemberDescriptor.Kind.SYNTHESIZED, null, thisDescriptor.source
         )
         propertyGetter.initialize(type)
 
-        val backingField = if (needBackingField) FieldDescriptorImpl(Annotations.EMPTY, propertyDescriptor) else null
+        val backingField = if (needBackingField) FieldDescriptorImpl(Annotations.create(listOfNotNull(thisDescriptor.jsExportIgnore())), propertyDescriptor) else null
         propertyDescriptor.initialize(propertyGetter, null, backingField, null)
         return propertyDescriptor
     }
@@ -237,7 +237,11 @@ object KSerializerDescriptorResolver {
         name: Name
     ): SimpleFunctionDescriptor {
         val functionDescriptor = SimpleFunctionDescriptorImpl.create(
-            companionDescriptor, Annotations.EMPTY, name, CallableMemberDescriptor.Kind.SYNTHESIZED, companionDescriptor.source
+            companionDescriptor,
+            Annotations.create(listOfNotNull(companionDescriptor.jsExportIgnore())),
+            name,
+            CallableMemberDescriptor.Kind.SYNTHESIZED,
+            companionDescriptor.source
         )
 
         val serializableClassOnImplSite = extractKSerializerArgumentFromImplementation(companionDescriptor)
@@ -270,7 +274,7 @@ object KSerializerDescriptorResolver {
     ): PropertyDescriptor {
         val propertyDescriptor = PropertyDescriptorImpl.create(
             containingClassDescriptor,
-            Annotations.EMPTY, Modality.FINAL, visibility, false, name,
+            Annotations.create(listOfNotNull(containingClassDescriptor.jsExportIgnore())), Modality.FINAL, visibility, false, name,
             CallableMemberDescriptor.Kind.SYNTHESIZED, containingClassDescriptor.source, false, false, false, false, false, false
         )
         val extensionReceiverParameter: ReceiverParameterDescriptor? = null // kludge to disambiguate call
@@ -284,7 +288,7 @@ object KSerializerDescriptorResolver {
 
         val propertyGetter: PropertyGetterDescriptorImpl? = if (createGetter) {
             PropertyGetterDescriptorImpl(
-                propertyDescriptor, Annotations.EMPTY, Modality.FINAL, visibility, false, false, false,
+                propertyDescriptor, Annotations.create(listOfNotNull(containingClassDescriptor.jsExportIgnore())), Modality.FINAL, visibility, false, false, false,
                 CallableMemberDescriptor.Kind.SYNTHESIZED, null, containingClassDescriptor.source
             ).apply { initialize(type) }
         } else {
@@ -305,7 +309,7 @@ object KSerializerDescriptorResolver {
 
         val functionDescriptor = ClassConstructorDescriptorImpl.createSynthesized(
             classDescriptor,
-            Annotations.create(listOf(createDeprecatedHiddenAnnotation(classDescriptor.module))),
+            Annotations.create(listOfNotNull(createDeprecatedHiddenAnnotation(classDescriptor.module), classDescriptor.jsExportIgnore())),
             false,
             SourceElement.NO_SOURCE
         )
@@ -504,7 +508,7 @@ object KSerializerDescriptorResolver {
     fun createWriteSelfFunctionDescriptor(thisClass: ClassDescriptor): SimpleFunctionDescriptor {
         val jvmStaticClass = thisClass.module.findClassAcrossModuleDependencies(StandardClassIds.Annotations.JvmStatic)!!
         val jvmStaticAnnotation = AnnotationDescriptorImpl(jvmStaticClass.defaultType, mapOf(), jvmStaticClass.source)
-        val annotations = Annotations.create(listOf(jvmStaticAnnotation))
+        val annotations = Annotations.create(listOfNotNull(jvmStaticAnnotation, thisClass.jsExportIgnore()))
 
         val f = SimpleFunctionDescriptorImpl.create(
             thisClass,

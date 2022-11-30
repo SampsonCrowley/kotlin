@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.test.runners.codegen.AbstractFirBlackBoxCodegenTest
 import org.jetbrains.kotlin.test.runners.codegen.AbstractIrBlackBoxCodegenTest
 import org.jetbrains.kotlinx.serialization.configureForKotlinxSerialization
 import org.jetbrains.kotlin.js.test.ir.AbstractJsIrTest;
-import org.jetbrains.kotlin.js.test.ir.AbstractFirJsBlackBoxCodegenTest;
 import org.jetbrains.kotlin.test.TargetBackend
 
 open class AbstractSerializationIrBoxTest : AbstractIrBlackBoxCodegenTest() {

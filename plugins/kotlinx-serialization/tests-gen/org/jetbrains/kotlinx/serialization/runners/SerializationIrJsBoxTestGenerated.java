@@ -30,4 +30,10 @@ public class SerializationIrJsBoxTestGenerated extends AbstractSerializationIrJs
     public void testExcludedFromExport() throws Exception {
         runTest("plugins/kotlinx-serialization/testData/boxIr/excludedFromExport.kt");
     }
+
+    @Test
+    @TestMetadata("excludedFromFileExport.kt")
+    public void testExcludedFromFileExport() throws Exception {
+        runTest("plugins/kotlinx-serialization/testData/boxIr/excludedFromFileExport.kt");
+    }
 }
