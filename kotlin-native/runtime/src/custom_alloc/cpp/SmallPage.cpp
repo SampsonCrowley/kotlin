@@ -27,10 +27,11 @@ SmallPage::SmallPage(uint32_t blockSize) noexcept : blockSize_(blockSize) {
 }
 
 SmallCell* SmallPage::TryAllocate() noexcept {
-    if (nextFree_ + blockSize_ > cells_ + SMALL_PAGE_CELL_COUNT) {
+	SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);
+    SmallCell* freeBlock = nextFree_;    
+	if (freeBlock >= end) {
         return nullptr;
     }
-    SmallCell* freeBlock = nextFree_;
     nextFree_ = freeBlock->nextFree;
     CustomAllocDebug("SmallPage(%p){%u}::TryAllocate() = %p", this, blockSize_, freeBlock);
     return freeBlock;
