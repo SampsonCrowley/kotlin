@@ -210,7 +210,7 @@ class ControlFlowGraphBuilder {
         )
 
         val previousNode = enterToLocalClassesMembers[function.symbol]
-            ?: (function as? FirSimpleFunction)?.takeIf { it.isLocal }?.let { lastNode }
+            ?: (function as? FirSimpleFunction)?.takeIf { it.isLocal }?.let { lastNodeOrNull }
 
         val enterNode = createFunctionEnterNode(function).also {
             lastNodes.push(it)
