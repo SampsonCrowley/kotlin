@@ -39,7 +39,7 @@ private fun applyKotlinTargetHierarchy(
     if (hierarchy.children.isNotEmpty()) {
         childSourceSets.forEach { childSourceSet -> childSourceSet.dependsOn(sharedSourceSet) }
     } else {
-        compilation.defaultSourceSet.dependsOn(sharedSourceSet)
+        compilation.kotlinSourceSets.forEach { it.dependsOn(sharedSourceSet) }
     }
 
     return sharedSourceSet
