@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.phaser.makeCustomPhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmInnerClassesSupport
+import org.jetbrains.kotlin.backend.jvm.ir.propertyIfAccessor
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
@@ -213,11 +214,18 @@ private class ScriptsToClassesLowering(val context: JvmBackendContext, val inner
 
         irScriptClass.thisReceiver = scriptTransformer.scriptClassReceiver
 
-        val defaultContext = ScriptToClassTransformerContext(irScriptClass.thisReceiver?.symbol, null, null, false)
-        fun <E : IrElement> E.patchForClass(): IrElement {
-            return transform(scriptTransformer, defaultContext)
-                .transform(lambdaPatcher, ScriptFixLambdasTransformerContext())
-        }
+        val defaultContext = ScriptToClassTransformerContext(
+            valueParameterForScriptThis = irScriptClass.thisReceiver?.symbol,
+            fieldForScriptThis = null,
+            valueParameterForFieldReceiver = null,
+            isInScriptConstructor = false
+        )
+
+        fun <E : IrElement> E.patchForClass(): IrElement =
+            transform(
+                scriptTransformer,
+                (this as? IrDeclaration)?.let { defaultContext.copy( topLevelDeclaration = it) } ?: defaultContext
+            ).transform(lambdaPatcher, ScriptFixLambdasTransformerContext())
 
         (irScript.constructor?.patchForClass()?.safeAs<IrConstructor>() ?: createConstructor(irScriptClass, irScript)).also { constructor ->
             val explicitParamsStartIndex = if (irScript.earlierScriptsParameter == null) 0 else 1
@@ -424,7 +432,8 @@ data class ScriptToClassTransformerContext(
     val valueParameterForScriptThis: IrValueParameterSymbol?,
     val fieldForScriptThis: IrFieldSymbol?,
     val valueParameterForFieldReceiver: IrValueParameterSymbol?,
-    val isInScriptConstructor: Boolean
+    val isInScriptConstructor: Boolean,
+    val topLevelDeclaration: IrDeclaration? = null
 )
 
 data class ScriptFixLambdasTransformerContext(
@@ -485,7 +494,7 @@ private class ScriptToClassTransformer(
             transformAnnotations(data)
             typeRemapper.withinScope(this) {
                 val newDispatchReceiverParameter = dispatchReceiverParameter?.transform(data) ?: run {
-                    if (this.isScriptTopLevel()) {
+                    if (this.isScriptTopLevel(data)) {
                         createThisReceiverParameter(IrDeclarationOrigin.SCRIPT_THIS_RECEIVER, scriptClassReceiver.type)
                     } else null
                 }
@@ -635,7 +644,7 @@ private class ScriptToClassTransformer(
         for (i in 0 until expression.typeArgumentsCount) {
             expression.putTypeArgument(i, expression.getTypeArgument(i)?.remapType())
         }
-        if (expression.dispatchReceiver == null && (expression.symbol.owner as? IrDeclaration)?.isScriptTopLevel() == true) {
+        if (expression.dispatchReceiver == null && (expression.symbol.owner as? IrDeclaration)?.isScriptTopLevel(data) == true) {
             expression.dispatchReceiver =
                 getAccessCallForScriptInstance(
                     data, expression.startOffset, expression.endOffset, expression.origin, originalReceiverParameter = null
@@ -645,7 +654,7 @@ private class ScriptToClassTransformer(
     }
 
     override fun visitGetField(expression: IrGetField, data: ScriptToClassTransformerContext): IrExpression {
-        if (expression.receiver == null && expression.symbol.owner.isScriptTopLevel()) {
+        if (expression.receiver == null && expression.symbol.owner.isScriptTopLevel(data)) {
             expression.receiver =
                 getAccessCallForScriptInstance(
                     data, expression.startOffset, expression.endOffset, expression.origin, originalReceiverParameter = null
@@ -808,7 +817,12 @@ private class ScriptToClassTransformer(
         return super.visitGetValue(expression, data)
     }
 
-    private fun IrDeclaration.isScriptTopLevel(): Boolean = parent == irScript || parent == irScriptClass
+    private fun IrDeclaration.isScriptTopLevel(data: ScriptToClassTransformerContext): Boolean {
+        if (data.topLevelDeclaration == null || (parent != irScript && parent != irScriptClass)) return false
+        val declarationToCompare = if (this is IrFunction) this.propertyIfAccessor else this
+        // TODO: might be fragile, if we'll start to use transformed declaration on either side, try to find a way to detect or avoid
+        return declarationToCompare == data.topLevelDeclaration
+    }
 }
 
 private class ScriptFixLambdasTransformer(val irScriptClass: IrClass) : IrElementTransformer<ScriptFixLambdasTransformerContext> {
