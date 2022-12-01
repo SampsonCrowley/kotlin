@@ -12,20 +12,41 @@ import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 
 interface ObjCExportScope {
+    class RecursionBreachException : Exception {
+        constructor(type: KotlinType) : super("$type was already encountered during type mapping process.")
+    }
+
     val parent: ObjCExportScope?
         get() = null
 
+    fun deriveForType(kotlinType: KotlinType): ObjCTypeExportScope = ObjCTypeExportScopeImpl(kotlinType, this)
+    fun deriveForClass(container: DeclarationDescriptor, namer: ObjCExportNamer): ObjCClassExportScope =
+            ObjCClassExportScopeImpl(container, namer, this)
+}
+
+internal inline fun <reified T : ObjCExportScope> ObjCExportScope.nearestScopeOfType(): T? {
+    var parent: ObjCExportScope? = this
+    while (parent != null) {
+        if (parent is T) {
+            return parent
+        }
+        parent = this.parent
+    }
+    return null
+}
+
+internal object ObjCRootExportScope : ObjCExportScope
+
+interface ObjCClassExportScope : ObjCExportScope {
     fun getGenericTypeUsage(typeParameterDescriptor: TypeParameterDescriptor?): ObjCGenericTypeUsage? =
-            this.parent?.getGenericTypeUsage(typeParameterDescriptor)
-
-    fun derive(kotlinType: KotlinType): ObjCExportScope = ObjCTypeExportScope(kotlinType = kotlinType, parent = this)
+            this.parent?.nearestScopeOfType<ObjCClassExportScope>()?.getGenericTypeUsage(typeParameterDescriptor)
 }
 
-internal object ObjCNoneExportScope : ObjCExportScope {
-    override fun getGenericTypeUsage(typeParameterDescriptor: TypeParameterDescriptor?): ObjCGenericTypeUsage? = null
-}
-
-internal class ObjCClassExportScope constructor(container: DeclarationDescriptor, val namer: ObjCExportNamer) : ObjCExportScope {
+private class ObjCClassExportScopeImpl constructor(
+        container: DeclarationDescriptor,
+        val namer: ObjCExportNamer,
+        override val parent: ObjCExportScope?,
+) : ObjCClassExportScope {
     private val typeParameterNames: List<TypeParameterDescriptor> =
             if (container is ClassDescriptor && !container.isInterface) {
                 container.typeConstructor.parameters
@@ -43,14 +64,16 @@ internal class ObjCClassExportScope constructor(container: DeclarationDescriptor
     }
 }
 
-internal class ObjCTypeExportScope(val kotlinType: KotlinType, override val parent: ObjCExportScope?) : ObjCExportScope {
-    class RecursionBreachException(type: KotlinType) : Exception("$type already encountered during type mapping process.")
+interface ObjCTypeExportScope : ObjCExportScope {
+    val kotlinType: KotlinType
+}
 
+private class ObjCTypeExportScopeImpl(override val kotlinType: KotlinType, override val parent: ObjCExportScope?) : ObjCTypeExportScope {
     init {
         var parent = this.parent
         while (parent != null && parent is ObjCTypeExportScope) {
             if (parent.kotlinType == kotlinType)
-                throw RecursionBreachException(kotlinType)
+                throw ObjCExportScope.RecursionBreachException(kotlinType)
             parent = parent.parent
         }
     }

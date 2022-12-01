@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.resolve.DataClassResolver
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationInfo
@@ -261,7 +260,7 @@ internal class ObjCExportTranslatorImpl(
 
         val name = referenceClass(classDescriptor).objCName
         val members = buildMembers {
-            translatePlainMembers(declarations, ObjCNoneExportScope)
+            translatePlainMembers(declarations, ObjCRootExportScope)
         }
         return ObjCInterfaceImpl(name, categoryName = "Extensions", members = members)
     }
@@ -271,7 +270,7 @@ internal class ObjCExportTranslatorImpl(
 
         // TODO: stop inheriting KotlinBase.
         val members = buildMembers {
-            translatePlainMembers(declarations, ObjCNoneExportScope)
+            translatePlainMembers(declarations, ObjCRootExportScope)
         }
         return objCInterface(
                 name,
@@ -342,7 +341,7 @@ internal class ObjCExportTranslatorImpl(
                     ?.forEach {
                         val selector = getSelector(it)
                         if (selector !in presentConstructors) {
-                            add { buildMethod(it, it, ObjCNoneExportScope, unavailable = true) }
+                            add { buildMethod(it, it, ObjCRootExportScope, unavailable = true) }
 
                             if (selector == "init") {
                                 add { ObjCMethod(null, false, ObjCInstanceType, listOf("new"), emptyList(), listOf("unavailable")) }
@@ -383,7 +382,7 @@ internal class ObjCExportTranslatorImpl(
                     }
                 }
                 ClassKind.ENUM_CLASS -> {
-                    val type = mapType(descriptor.defaultType, ReferenceBridge, ObjCNoneExportScope)
+                    val type = mapType(descriptor.defaultType, ReferenceBridge, ObjCRootExportScope)
 
                     descriptor.enumEntries.forEach {
                         val entryName = namer.getEnumEntrySelector(it)
@@ -434,9 +433,9 @@ internal class ObjCExportTranslatorImpl(
     }
 
     internal fun createGenericExportScope(descriptor: ClassDescriptor): ObjCExportScope = if (objcGenerics) {
-        ObjCClassExportScope(descriptor, namer)
+        ObjCRootExportScope.deriveForClass(descriptor, namer)
     } else {
-        ObjCNoneExportScope
+        ObjCRootExportScope
     }
 
     private fun buildThrowableAsErrorMethod(): ObjCMethod {
@@ -560,7 +559,7 @@ internal class ObjCExportTranslatorImpl(
             }
         }
 
-        translatePlainMembers(methods, properties, ObjCNoneExportScope)
+        translatePlainMembers(methods, properties, ObjCRootExportScope)
     }
 
     private fun StubBuilder<Stub<*>>.translatePlainMembers(members: List<CallableMemberDescriptor>, objCExportScope: ObjCExportScope) {
@@ -923,14 +922,16 @@ internal class ObjCExportTranslatorImpl(
 
         mostSpecificMatches.firstOrNull()?.let {
             try {
-                return it.mapper.mapType(it.type, this, objCExportScope.derive(it.type))
-            } catch (e: ObjCTypeExportScope.RecursionBreachException) {
+                return it.mapper.mapType(it.type, this, objCExportScope.deriveForType(it.type))
+            } catch (e: ObjCExportScope.RecursionBreachException) {
                 return ObjCIdType
             }
         }
 
         if (objcGenerics && kotlinType.isTypeParameter()) {
-            val genericTypeUsage = objCExportScope.getGenericTypeUsage(TypeUtils.getTypeParameterDescriptorOrNull(kotlinType))
+            val genericTypeUsage = objCExportScope
+                    .nearestScopeOfType<ObjCClassExportScope>()
+                    ?.getGenericTypeUsage(TypeUtils.getTypeParameterDescriptorOrNull(kotlinType))
             if (genericTypeUsage != null)
                 return genericTypeUsage
         }
