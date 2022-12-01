@@ -33,7 +33,7 @@ public:
 private:
     friend class AtomicStack<SmallPage>;
 
-    SmallPage(uint32_t blockSize) noexcept;
+    explicit SmallPage(uint32_t blockSize) noexcept;
 
     // Used for linking pages together in `pages` queue or in `unswept` queue.
     SmallPage* next_;
