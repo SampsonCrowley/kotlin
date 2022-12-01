@@ -55,11 +55,12 @@ private class ObjCClassExportScopeImpl constructor(
             }
 
     override fun getGenericTypeUsage(typeParameterDescriptor: TypeParameterDescriptor?): ObjCGenericTypeUsage? {
-        return typeParameterNames.firstOrNull {
-            typeParameterDescriptor != null &&
-                    (it == typeParameterDescriptor || (it.isCapturedFromOuterDeclaration && it.original == typeParameterDescriptor))
-        }?.let {
-            ObjCGenericTypeParameterUsage(it, namer)
+        return typeParameterDescriptor?.let { descriptor ->
+            typeParameterNames.firstOrNull {
+                it == desctiptor || it.isCapturedFromOuterDeclaration && it.original == descriptor
+            }?.let {
+                ObjCGenericTypeParameterUsage(it, namer)
+            }
         }
     }
 }
