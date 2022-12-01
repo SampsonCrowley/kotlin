@@ -13,8 +13,8 @@ template<class T>
 class PageStore {
 public:
     void PrepareForGC() noexcept {
-        unswept_.NonatomicTransferAllFrom(ready_);
-        unswept_.NonatomicTransferAllFrom(used_);
+        unswept_.TransferAllFrom(ready_);
+        unswept_.TransferAllFrom(used_);
         T* page;
         while ((page = empty_.Pop())) free(page);
     }

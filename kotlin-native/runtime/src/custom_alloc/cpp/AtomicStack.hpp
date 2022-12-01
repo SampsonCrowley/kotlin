@@ -32,27 +32,27 @@ public:
                     std::memory_order_acq_rel));
     }
 
-    void NonatomicTransferAllFrom(AtomicStack<T> &other) noexcept {
-        T* head = other.stack_.load(std::memory_order_acquire);
-        if (!head) return;
-        other.stack_.store(nullptr, std::memory_order_release);
-        T* tail = stack_.load(std::memory_order_acquire);
-        if (tail) {
-            while (tail->next_) tail = tail->next_;
-            tail->next_ = head;
-        } else {
-            stack_.store(head, std::memory_order_release);
+    void TransferAllFrom(AtomicStack<T> &other) noexcept {
+        // Clear out the `other` stack.
+        T* otherHead = nullptr;
+        while (!other.stack_.compare_exchange_weak(otherHead, nullptr, std::memory_order_acq_rel)) {}
+        // If the `other` stack was empty, do nothing.
+        if (!otherHead) return;
+        // Now find the tail of `other`. If no deletions are performed, this is safe.
+        T* otherTail = otherHead;
+        while (otherTail->next_) otherTail = otherTail->next_;
+        // Now make `otherTail->next_` point to the current head of `this` and
+        // simultaneously make `otherHead` the new current head.
+        T* thisHead = nullptr;
+        // can't be because of the loop above
+        RuntimeAssert(otherTail->next_ == nullptr, "otherTail->next_ must be a tail");
+        while (!stack_.compare_exchange_weak(thisHead, otherHead, std::memory_order_acq_rel)) {
+            otherTail->next_ = thisHead;
         }
     }
 
-    // Should only be called during STW.
-    void FreeAllPages() noexcept {
-        CustomAllocDebug("AtomicStack(%p)::FreeAllPages()", this);
-        T* page;
-        while ((page = Pop())) {
-            CustomAllocDebug("AtomicStack(%p) free(%p)", this, page);
-            free(page);
-        }
+    bool isEmpty() noexcept {
+        return stack_.load(std::memory_order_relaxed) == nullptr;
     }
 
 private:
