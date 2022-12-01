@@ -50,6 +50,8 @@ public final class Test$$serializer : java/lang/Object, kotlinx/serialization/in
 
     public kotlinx.serialization.descriptors.SerialDescriptor getDescriptor()
 
+    public static void getDescriptor$annotations()
+
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, Test value)
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, java.lang.Object value)

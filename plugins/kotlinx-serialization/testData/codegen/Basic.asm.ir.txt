@@ -169,6 +169,8 @@ public final class ListOfUsers$$serializer : java/lang/Object, kotlinx/serializa
         LABEL (L1)
     }
 
+    public static void getDescriptor$annotations()
+
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, ListOfUsers value) {
         LABEL (L0)
           ALOAD (1)
@@ -493,6 +495,8 @@ public final class OptionalUser$$serializer : java/lang/Object, kotlinx/serializ
           ARETURN
         LABEL (L1)
     }
+
+    public static void getDescriptor$annotations()
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, OptionalUser value) {
         LABEL (L0)
@@ -894,6 +898,8 @@ public final class User$$serializer : java/lang/Object, kotlinx/serialization/in
           ARETURN
         LABEL (L1)
     }
+
+    public static void getDescriptor$annotations()
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, User value) {
         LABEL (L0)

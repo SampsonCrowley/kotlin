@@ -63,11 +63,6 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
         hasFactory && hasMarkedFactory
     }
 
-
-    private val jsExportIgnore by lazy {
-        session.symbolProvider.getClassLikeSymbolByClassId(SerializationDependenciesClassIds.jsExportIgnore)
-    }
-
     override fun getNestedClassifiersNames(classSymbol: FirClassSymbol<*>): Set<Name> {
         val result = mutableSetOf<Name>()
         with(session) {
@@ -191,7 +186,7 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
             symbol = FirNamedFunctionSymbol(callableId)
             origin = SerializationPluginKey.origin
             status = original.status.copy(modality = Modality.FINAL)
-
+            excludeFromExport()
         }
         return listOf(copy.symbol)
     }
@@ -260,6 +255,7 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
                 dispatchReceiverType = owner.defaultType()
                 propertySymbol = this@buildPropertyCopy.symbol
             }
+            excludeFromExport()
         }
         return listOf(copy.symbol)
     }
@@ -339,6 +335,8 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
                     )
                 ), isNullable = false
             ).toFirResolvedTypeRef()
+
+            excludeFromExport()
         }
         return serializerFirClass.symbol
     }
@@ -396,19 +394,4 @@ class SerializationFirResolveExtension(session: FirSession) : FirDeclarationGene
             return true
         }
 
-    private fun FirAnnotationContainerBuilder.excludeFromExport() {
-        val jsExportIgnoreAnnotation = jsExportIgnore as? FirRegularClassSymbol ?: return
-        val jsExportIgnoreConstructor = jsExportIgnoreAnnotation.declarationSymbols.firstIsInstanceOrNull<FirConstructorSymbol>() ?: return
-
-        annotations.add(buildAnnotationCall {
-            argumentList = buildResolvedArgumentList(linkedMapOf())
-            annotationTypeRef = buildResolvedTypeRef {
-                type = jsExportIgnoreAnnotation.defaultType()
-            }
-            calleeReference = buildResolvedNamedReference {
-                name = jsExportIgnoreAnnotation.name
-                resolvedSymbol = jsExportIgnoreConstructor
-            }
-        })
-    }
 }

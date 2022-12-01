@@ -162,6 +162,8 @@ public final class Container$$serializer : java/lang/Object, kotlinx/serializati
 
     public kotlinx.serialization.descriptors.SerialDescriptor getDescriptor()
 
+    public static void getDescriptor$annotations()
+
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, Container value)
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, java.lang.Object value)
@@ -634,6 +636,8 @@ public final class Result$OK$$serializer : java/lang/Object, kotlinx/serializati
     }
 
     public kotlinx.serialization.descriptors.SerialDescriptor getDescriptor()
+
+    public static void getDescriptor$annotations()
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, Result$OK value)
 

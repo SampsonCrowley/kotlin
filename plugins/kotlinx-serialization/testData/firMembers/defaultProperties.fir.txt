@@ -31,15 +31,15 @@ FILE: defaultProperties.kt
 
         }
 
-        public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<SomeClass>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|SomeClass|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<SomeClass>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|SomeClass|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|SomeClass|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|SomeClass|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|SomeClass.$serializer|
 

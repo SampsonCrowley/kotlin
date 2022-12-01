@@ -20,17 +20,17 @@ FILE: classWithGenericParameters.kt
 
         }
 
-        public final class $serializer<T, V> : R|kotlinx/serialization/internal/GeneratedSerializer<GenericBox<T, V>>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|GenericBox<T, V>|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final class $serializer<T, V> : R|kotlinx/serialization/internal/GeneratedSerializer<GenericBox<T, V>>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|GenericBox<T, V>|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|GenericBox<T, V>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|GenericBox<T, V>|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
-            public final fun typeParametersSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun typeParametersSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|GenericBox.$serializer<T, V>|
 

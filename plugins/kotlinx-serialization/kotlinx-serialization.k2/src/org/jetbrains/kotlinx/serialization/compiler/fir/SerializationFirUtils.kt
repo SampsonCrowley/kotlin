@@ -7,18 +7,28 @@ package org.jetbrains.kotlinx.serialization.compiler.fir
 
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.builder.FirAnnotationContainerBuilder
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.arguments
+import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
+import org.jetbrains.kotlin.fir.extensions.FirExtension
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
+import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
+import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
+import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlinx.serialization.compiler.fir.services.dependencySerializationInfoProvider
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationAnnotations
@@ -26,6 +36,7 @@ import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationAnnotat
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationAnnotations.metaSerializableAnnotationClassId
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationAnnotations.serialInfoClassId
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationAnnotations.serialNameAnnotationClassId
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationDependenciesClassIds
 
 object AnnotationParameterNames {
     val VALUE = Name.identifier("value")
@@ -194,3 +205,20 @@ context(FirSession)
 val ConeKotlinType.isGeneratedSerializableObject: Boolean
     get() = toRegularClassSymbol(this@FirSession)?.let { it.classKind.isObject && it.hasSerializableOrMetaAnnotationWithoutArgs } ?: false
 
+context(FirAnnotationContainerBuilder)
+fun FirExtension.excludeFromExport() {
+    val jsExportIgnore = session.symbolProvider.getClassLikeSymbolByClassId(SerializationDependenciesClassIds.jsExportIgnore)
+    val jsExportIgnoreAnnotation = jsExportIgnore as? FirRegularClassSymbol ?: return
+    val jsExportIgnoreConstructor = jsExportIgnoreAnnotation.declarationSymbols.firstIsInstanceOrNull<FirConstructorSymbol>() ?: return
+
+    annotations.add(buildAnnotationCall {
+        argumentList = buildResolvedArgumentList(linkedMapOf())
+        annotationTypeRef = buildResolvedTypeRef {
+            type = jsExportIgnoreAnnotation.defaultType()
+        }
+        calleeReference = buildResolvedNamedReference {
+            name = jsExportIgnoreAnnotation.name
+            resolvedSymbol = jsExportIgnoreConstructor
+        }
+    })
+}

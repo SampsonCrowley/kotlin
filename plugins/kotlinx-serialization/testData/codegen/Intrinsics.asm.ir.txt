@@ -15,7 +15,11 @@ public final class Box$$serializer : java/lang/Object, kotlinx/serialization/int
 
     public kotlinx.serialization.descriptors.SerialDescriptor getDescriptor()
 
+    public static void getDescriptor$annotations()
+
     private final kotlinx.serialization.KSerializer getTypeSerial0()
+
+    private static void getTypeSerial0$annotations()
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, Box value)
 
@@ -229,6 +233,8 @@ public final class Simple$$serializer : java/lang/Object, kotlinx/serialization/
     public java.lang.Object deserialize(kotlinx.serialization.encoding.Decoder decoder)
 
     public kotlinx.serialization.descriptors.SerialDescriptor getDescriptor()
+
+    public static void getDescriptor$annotations()
 
     public void serialize(kotlinx.serialization.encoding.Encoder encoder, Simple value)
 

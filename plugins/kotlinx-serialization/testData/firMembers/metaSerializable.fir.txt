@@ -35,15 +35,15 @@ FILE: metaSerializable.kt
 
         }
 
-        public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Project1>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Project1|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Project1>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Project1|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Project1|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Project1|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|Project1.$serializer|
 
@@ -68,15 +68,15 @@ FILE: metaSerializable.kt
 
         }
 
-        public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Project2>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Project2|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Project2>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Project2|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Project2|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Project2|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|Project2.$serializer|
 
@@ -98,15 +98,15 @@ FILE: metaSerializable.kt
 
         }
 
-        public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Wrapper>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Wrapper|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Wrapper>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Wrapper|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Wrapper|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Wrapper|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|Wrapper.$serializer|
 
@@ -131,15 +131,15 @@ FILE: metaSerializable.kt
 
         }
 
-        public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Project3>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Project3|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<Project3>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|Project3|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Project3|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|Project3|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|Project3.$serializer|
 
@@ -185,15 +185,15 @@ FILE: metaSerializable.kt
 
             }
 
-            public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestSealed.A>| {
-                public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestSealed.A|): R|kotlin/Unit|
+            @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestSealed.A>| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestSealed.A|): R|kotlin/Unit|
 
-                public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestSealed.A|
+                @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestSealed.A|
 
-                public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+                @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                     public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-                public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+                @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
                 private constructor(): R|TestSealed.A.$serializer|
 
@@ -216,15 +216,15 @@ FILE: metaSerializable.kt
 
             }
 
-            public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestSealed.B>| {
-                public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestSealed.B|): R|kotlin/Unit|
+            @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestSealed.B>| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestSealed.B|): R|kotlin/Unit|
 
-                public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestSealed.B|
+                @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestSealed.B|
 
-                public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+                @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                     public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-                public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+                @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
                 private constructor(): R|TestSealed.B.$serializer|
 
@@ -260,15 +260,15 @@ FILE: metaSerializable.kt
 
             }
 
-            public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestAbstract.A>| {
-                public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestAbstract.A|): R|kotlin/Unit|
+            @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestAbstract.A>| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestAbstract.A|): R|kotlin/Unit|
 
-                public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestAbstract.A|
+                @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestAbstract.A|
 
-                public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+                @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                     public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-                public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+                @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
                 private constructor(): R|TestAbstract.A.$serializer|
 
@@ -291,15 +291,15 @@ FILE: metaSerializable.kt
 
             }
 
-            public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestAbstract.B>| {
-                public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestAbstract.B|): R|kotlin/Unit|
+            @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestAbstract.B>| {
+                @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestAbstract.B|): R|kotlin/Unit|
 
-                public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestAbstract.B|
+                @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestAbstract.B|
 
-                public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+                @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                     public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-                public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+                @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
                 private constructor(): R|TestAbstract.B.$serializer|
 
@@ -338,15 +338,15 @@ FILE: metaSerializable.kt
 
         }
 
-        public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestEnum>| {
-            public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestEnum|): R|kotlin/Unit|
+        @R|kotlin/js/JsExport.Ignore|() public final object $serializer : R|kotlinx/serialization/internal/GeneratedSerializer<TestEnum>| {
+            @R|kotlin/js/JsExport.Ignore|() public final fun serialize(encoder: R|kotlinx/serialization/encoding/Encoder|, value: R|TestEnum|): R|kotlin/Unit|
 
-            public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestEnum|
+            @R|kotlin/js/JsExport.Ignore|() public final fun deserialize(decoder: R|kotlinx/serialization/encoding/Decoder|): R|TestEnum|
 
-            public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
+            @R|kotlin/js/JsExport.Ignore|() public final val descriptor: R|kotlinx/serialization/descriptors/SerialDescriptor|
                 public get(): R|kotlinx/serialization/descriptors/SerialDescriptor|
 
-            public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
+            @R|kotlin/js/JsExport.Ignore|() public final fun childSerializers(): R|kotlin/Array<kotlinx/serialization/KSerializer<*>>|
 
             private constructor(): R|TestEnum.$serializer|
 
