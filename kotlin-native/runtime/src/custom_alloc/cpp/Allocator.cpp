@@ -21,4 +21,4 @@ void initObjectPool() noexcept {}
 void compactObjectPoolInMainThread() noexcept {}
 void compactObjectPoolInCurrentThread() noexcept {}
 
-}  // namespace kotlin
+} // namespace kotlin

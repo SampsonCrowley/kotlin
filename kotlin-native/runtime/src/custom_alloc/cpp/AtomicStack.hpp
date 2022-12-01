@@ -9,7 +9,7 @@
 
 namespace kotlin::alloc {
 
-template<class T>
+template <class T>
 class AtomicStack {
 public:
     // Pop() is not fully thread-safe, in that the returned page must not be
@@ -18,8 +18,7 @@ public:
     // freeing pages during STW.
     T* Pop() noexcept {
         T* elm = stack_.load(std::memory_order_acquire);
-        while (elm && !stack_.compare_exchange_weak(elm, elm->next_,
-                    std::memory_order_acq_rel)) {}
+        while (elm && !stack_.compare_exchange_weak(elm, elm->next_, std::memory_order_acq_rel)) {}
         CustomAllocDebug("AtomicStack(%p)::Pop() = %p", this, elm);
         return elm;
     }
@@ -28,11 +27,10 @@ public:
         T* head = nullptr;
         do {
             elm->next_ = head;
-        } while (!stack_.compare_exchange_weak(head, elm,
-                    std::memory_order_acq_rel));
+        } while (!stack_.compare_exchange_weak(head, elm, std::memory_order_acq_rel));
     }
 
-    void TransferAllFrom(AtomicStack<T> &other) noexcept {
+    void TransferAllFrom(AtomicStack<T>& other) noexcept {
         // Clear out the `other` stack.
         T* otherHead = nullptr;
         while (!other.stack_.compare_exchange_weak(otherHead, nullptr, std::memory_order_acq_rel)) {}
@@ -51,14 +49,12 @@ public:
         }
     }
 
-    bool isEmpty() noexcept {
-        return stack_.load(std::memory_order_relaxed) == nullptr;
-    }
+    bool isEmpty() noexcept { return stack_.load(std::memory_order_relaxed) == nullptr; }
 
 private:
     std::atomic<T*> stack_{nullptr};
 };
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

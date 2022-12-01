@@ -114,9 +114,7 @@ public:
     void CollectRootSetAndStartMarking(GCHandle gcHandle) noexcept;
 
 #ifdef CUSTOM_ALLOCATOR
-    alloc::Heap& heap() noexcept {
-        return heap_;
-    }
+    alloc::Heap& heap() noexcept { return heap_; }
 #endif
 
 private:
@@ -136,7 +134,6 @@ private:
 
     MarkQueue markQueue_;
     MarkingBehavior markingBehavior_;
-
 };
 
 namespace internal {

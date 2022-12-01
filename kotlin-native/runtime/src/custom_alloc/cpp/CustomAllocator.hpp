@@ -25,17 +25,17 @@ public:
     void PrepareForGC() noexcept;
 
 private:
-    void* Allocate(uint64_t cellCount) noexcept;
-    void* AllocateInLargePage(uint64_t cellCount) noexcept;
-    void* AllocateInMediumPage(uint32_t cellCount) noexcept;
-    void* AllocateInSmallPage(uint32_t cellCount) noexcept;
+    uint8_t* Allocate(uint64_t cellCount) noexcept;
+    uint8_t* AllocateInLargePage(uint64_t cellCount) noexcept;
+    uint8_t* AllocateInMediumPage(uint32_t cellCount) noexcept;
+    uint8_t* AllocateInSmallPage(uint32_t cellCount) noexcept;
 
     Heap& heap_;
     gc::GCSchedulerThreadData& gcScheduler_;
     MediumPage* mediumPage_;
-    SmallPage* smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE+1];
+    SmallPage* smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE + 1];
 };
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

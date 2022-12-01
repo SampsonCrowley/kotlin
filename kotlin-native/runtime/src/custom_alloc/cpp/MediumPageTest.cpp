@@ -4,9 +4,9 @@
 #include <random>
 
 #include "Cell.hpp"
+#include "CustomAllocConstants.hpp"
 #include "gtest/gtest.h"
 #include "MediumPage.hpp"
-#include "SmallPage.hpp"
 #include "TypeInfo.h"
 
 namespace {
@@ -14,23 +14,23 @@ namespace {
 using MediumPage = typename kotlin::alloc::MediumPage;
 using Cell = typename kotlin::alloc::Cell;
 
-TypeInfo fakeType = { .flags_ = 0 };  // a type without a finalizer
+TypeInfo fakeType = {.flags_ = 0}; // a type without a finalizer
 
-#define MIN_BLOCK_SIZE (SMALL_PAGE_MAX_BLOCK_SIZE+1)
+#define MIN_BLOCK_SIZE (SMALL_PAGE_MAX_BLOCK_SIZE + 1)
 
 void mark(void* obj) {
     reinterpret_cast<uint64_t*>(obj)[0] = 1;
 }
 
-uint64_t* alloc(MediumPage* page, uint32_t blockSize) {
-    uint64_t* ptr = page->TryAllocate(blockSize);
+uint8_t* alloc(MediumPage* page, uint32_t blockSize) {
+    uint8_t* ptr = page->TryAllocate(blockSize);
     if (!page->CheckInvariants()) {
         ADD_FAILURE();
         return nullptr;
     }
     if (ptr == nullptr) return nullptr;
     memset(ptr, 0, 8 * blockSize);
-    ptr[1] = reinterpret_cast<uint64_t>(&fakeType);
+    reinterpret_cast<uint64_t*>(ptr)[1] = reinterpret_cast<uint64_t>(&fakeType);
     if (!page->CheckInvariants()) {
         ADD_FAILURE();
         return nullptr;
@@ -40,9 +40,10 @@ uint64_t* alloc(MediumPage* page, uint32_t blockSize) {
 
 TEST(CustomAllocTest, MediumPageAlloc) {
     MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
-    uint64_t* p1 = alloc(page, MIN_BLOCK_SIZE);
-    uint64_t* p2 = alloc(page, MIN_BLOCK_SIZE);
-    EXPECT_EQ(p1 - p2, MIN_BLOCK_SIZE + 1);
+    uint8_t* p1 = alloc(page, MIN_BLOCK_SIZE);
+    uint8_t* p2 = alloc(page, MIN_BLOCK_SIZE);
+    uint64_t dist = abs(p1 - p2);
+    EXPECT_EQ(dist, (MIN_BLOCK_SIZE + 1) * sizeof(kotlin::alloc::Cell));
     free(page);
 }
 
@@ -53,7 +54,7 @@ TEST(CustomAllocTest, MediumPageSweepEmptyPage) {
 }
 
 TEST(CustomAllocTest, MediumPageSweepFullUnmarkedPage) {
-    for (uint32_t seed = 0xC0FFEE0 ; seed <= 0xC0FFEEF ; ++seed) {
+    for (uint32_t seed = 0xC0FFEE0; seed <= 0xC0FFEEF; ++seed) {
         std::minstd_rand r(seed);
         MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
         while (alloc(page, MIN_BLOCK_SIZE + r() % 100)) {}
@@ -70,7 +71,7 @@ TEST(CustomAllocTest, MediumPageSweepSingleMarked) {
 }
 
 TEST(CustomAllocTest, MediumPageSweepSingleReuse) {
-    for (uint32_t seed = 0xC0FFEE0 ; seed <= 0xC0FFEEF ; ++seed) {
+    for (uint32_t seed = 0xC0FFEE0; seed <= 0xC0FFEEF; ++seed) {
         std::minstd_rand r(seed);
         MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
         int count1 = 0;
@@ -85,12 +86,12 @@ TEST(CustomAllocTest, MediumPageSweepSingleReuse) {
 }
 
 TEST(CustomAllocTest, MediumPageSweepReuse) {
-    for (uint32_t seed = 0xC0FFEE0 ; seed <= 0xC0FFEEF ; ++seed) {
+    for (uint32_t seed = 0xC0FFEE0; seed <= 0xC0FFEEF; ++seed) {
         std::minstd_rand r(seed);
         MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
         int unmarked = 0;
         while (true) {
-            uint64_t* ptr = alloc(page, MIN_BLOCK_SIZE);
+            uint8_t* ptr = alloc(page, MIN_BLOCK_SIZE);
             if (ptr == nullptr) break;
             if (r() & 1) {
                 mark(ptr);
@@ -116,4 +117,4 @@ TEST(CustomAllocTest, MediumPageSweepCoallesce) {
 }
 
 #undef MIN_BLOCK_SIZE
-}  // namespace
+} // namespace

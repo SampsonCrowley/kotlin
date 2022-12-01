@@ -8,21 +8,17 @@
 
 #include "AtomicStack.hpp"
 #include "Cell.hpp"
-#include "CustomLogging.hpp"
-#include "KAssert.h"
 
 namespace kotlin::alloc {
-
-#define KiB 1024
-#define MEDIUM_PAGE_SIZE (256*KiB)
-#define MEDIUM_PAGE_CELL_COUNT ((MEDIUM_PAGE_SIZE - sizeof(kotlin::alloc::MediumPage)) / sizeof(kotlin::alloc::Cell))
 
 class alignas(8) MediumPage {
 public:
     static MediumPage* Create(uint32_t cellCount) noexcept;
 
+    void Destroy() noexcept;
+
     // Tries to allocate in current page, returns null if no free block in page is big enough
-    uint64_t* TryAllocate(uint32_t blockSize) noexcept;
+    uint8_t* TryAllocate(uint32_t blockSize) noexcept;
 
     bool Sweep() noexcept;
 
@@ -31,7 +27,7 @@ public:
 
 private:
     MediumPage(uint32_t cellCount) noexcept;
-    
+
     // Looks for a block big enough to hold cellsNeeded. If none big enough is
     // found, update to the largest one.
     void UpdateCurBlock(uint32_t cellsNeeded) noexcept;
@@ -40,9 +36,9 @@ private:
     MediumPage* next_;
 
     Cell* curBlock_;
-    Cell kZeroBlock_;  // simplifies code to have a dummy empty cell in the same address neighborhood
+    Cell kZeroBlock_; // simplifies code to have a dummy empty cell in the same address neighborhood
     Cell cells_[];
 };
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

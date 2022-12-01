@@ -9,21 +9,20 @@
 
 namespace kotlin::alloc {
 
-template<class T>
+template <class T>
 class PageStore {
 public:
     void PrepareForGC() noexcept {
         unswept_.TransferAllFrom(ready_);
         unswept_.TransferAllFrom(used_);
         T* page;
-        while ((page = empty_.Pop())) free(page);
+        while ((page = empty_.Pop())) page->Destroy();
     }
 
-    T* SweepAndFreeEmpty(AtomicStack<T> &from, AtomicStack<T> &to) noexcept {
+    T* SweepAndFreeEmpty(AtomicStack<T>& from, AtomicStack<T>& to) noexcept {
         T* page;
         while ((page = from.Pop())) {
             if (!page->Sweep()) {
-                CustomAllocInfo("SweepAndFreeEmpty free(%p)", page);
                 empty_.Push(page);
             } else {
                 to.Push(page);
@@ -66,6 +65,6 @@ private:
     AtomicStack<T> unswept_;
 };
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

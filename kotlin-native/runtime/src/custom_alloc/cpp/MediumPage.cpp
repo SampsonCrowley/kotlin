@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "CustomLogging.hpp"
+#include "CustomAllocConstants.hpp"
 #include "GCApi.hpp"
 
 namespace kotlin::alloc {
@@ -16,15 +17,19 @@ MediumPage* MediumPage::Create(uint32_t cellCount) noexcept {
     return new (SafeAlloc(MEDIUM_PAGE_SIZE)) MediumPage(cellCount);
 }
 
+void MediumPage::Destroy() noexcept {
+    std_support::free(this);
+}
+
 MediumPage::MediumPage(uint32_t cellCount) noexcept : curBlock_(cells_), kZeroBlock_(0) {
     cells_[0] = Cell(MEDIUM_PAGE_CELL_COUNT);
 }
 
-uint64_t* MediumPage::TryAllocate(uint32_t blockSize) noexcept {
+uint8_t* MediumPage::TryAllocate(uint32_t blockSize) noexcept {
     CustomAllocDebug("MediumPage@%p::TryAllocate(%u)", this, blockSize);
     // +1 accounts for header, since cell->size also includes header cell
     uint32_t cellsNeeded = blockSize + 1;
-    uint64_t* block = curBlock_->TryAllocate(cellsNeeded);
+    uint8_t* block = curBlock_->TryAllocate(cellsNeeded);
     if (block) return block;
     UpdateCurBlock(cellsNeeded);
     return curBlock_->TryAllocate(cellsNeeded);
@@ -91,4 +96,4 @@ bool MediumPage::CheckInvariants() noexcept {
     }
 }
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc

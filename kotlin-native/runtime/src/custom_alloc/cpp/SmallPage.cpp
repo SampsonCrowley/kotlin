@@ -3,10 +3,12 @@
 #include "SmallPage.hpp"
 
 #include <atomic>
+#include <cstdint>
 #include <cstring>
 #include <random>
 
 #include "CustomLogging.hpp"
+#include "CustomAllocConstants.hpp"
 #include "GCApi.hpp"
 
 namespace kotlin::alloc {
@@ -15,6 +17,10 @@ SmallPage* SmallPage::Create(uint32_t blockSize) noexcept {
     CustomAllocInfo("SmallPage::Create(%u)", blockSize);
     RuntimeAssert(blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE, "blockSize too large for small page");
     return new (SafeAlloc(SMALL_PAGE_SIZE)) SmallPage(blockSize);
+}
+
+void SmallPage::Destroy() noexcept {
+    std_support::free(this);
 }
 
 SmallPage::SmallPage(uint32_t blockSize) noexcept : blockSize_(blockSize) {
@@ -26,15 +32,15 @@ SmallPage::SmallPage(uint32_t blockSize) noexcept : blockSize_(blockSize) {
     }
 }
 
-SmallCell* SmallPage::TryAllocate() noexcept {
-	SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);
-    SmallCell* freeBlock = nextFree_;    
-	if (freeBlock >= end) {
+uint8_t* SmallPage::TryAllocate() noexcept {
+    SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);
+    SmallCell* freeBlock = nextFree_;
+    if (freeBlock >= end) {
         return nullptr;
     }
     nextFree_ = freeBlock->nextFree;
     CustomAllocDebug("SmallPage(%p){%u}::TryAllocate() = %p", this, blockSize_, freeBlock);
-    return freeBlock;
+    return reinterpret_cast<uint8_t*>(freeBlock);
 }
 
 bool SmallPage::Sweep() noexcept {
@@ -44,7 +50,7 @@ bool SmallPage::Sweep() noexcept {
     SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);
     bool alive = false;
     SmallCell** nextFree = &nextFree_;
-	for (SmallCell* cell = cells_; cell < end; cell += blockSize_) {
+    for (SmallCell* cell = cells_; cell < end; cell += blockSize_) {
         // If the current cell is free, move on.
         if (cell == *nextFree) {
             nextFree = &cell->nextFree;
@@ -63,4 +69,4 @@ bool SmallPage::Sweep() noexcept {
     return alive;
 }
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc

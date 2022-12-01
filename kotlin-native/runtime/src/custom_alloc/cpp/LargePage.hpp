@@ -7,19 +7,18 @@
 #include <cstdint>
 
 #include "AtomicStack.hpp"
-#include "MediumPage.hpp"
 
 namespace kotlin::alloc {
-
-#define LARGE_PAGE_SIZE_THRESHOLD (MEDIUM_PAGE_CELL_COUNT-1)
 
 class alignas(8) LargePage {
 public:
     static LargePage* Create(uint64_t cellCount) noexcept;
 
-    uint64_t* TryAllocate() noexcept;
+    void Destroy() noexcept;
 
-    uint64_t* Data() noexcept;
+    uint8_t* TryAllocate() noexcept;
+
+    uint8_t* Data() noexcept;
 
     bool Sweep() noexcept;
 
@@ -29,6 +28,6 @@ private:
     bool isAllocated_ = false;
 };
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

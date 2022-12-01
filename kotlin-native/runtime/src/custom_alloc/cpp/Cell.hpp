@@ -15,10 +15,10 @@ public:
 
     // Allocate `cellsNeeded` blocks at the end of this block, possibly the
     // whole block, or null if it doesn't fit.
-    uint64_t* TryAllocate(uint32_t cellsNeeded) noexcept;
+    uint8_t* TryAllocate(uint32_t cellsNeeded) noexcept;
 
     // Returns the pointer to the payload
-    uint64_t* Data() noexcept;
+    uint8_t* Data() noexcept;
 
     // Marks block as no longer allocated.
     void Deallocate() noexcept;
@@ -33,8 +33,6 @@ private:
     uint32_t size_;
 };
 
-static_assert(sizeof(Cell) == 8, "Cell size is wrong");
-
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

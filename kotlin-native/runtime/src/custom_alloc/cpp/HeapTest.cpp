@@ -19,7 +19,7 @@ using LargePage = typename kotlin::alloc::LargePage;
 #define MIN_BLOCK_SIZE 2
 
 void mark(void* obj) {
-    reinterpret_cast<uint64_t*>(obj)[0] = 1;
+    reinterpret_cast<uint8_t*>(obj)[0] = 1;
 }
 
 TEST(CustomAllocTest, HeapReuseSmallPages) {
@@ -27,14 +27,14 @@ TEST(CustomAllocTest, HeapReuseSmallPages) {
     const int MIN = MIN_BLOCK_SIZE;
     const int MAX = SMALL_PAGE_MAX_BLOCK_SIZE + 1;
     SmallPage* pages[MAX];
-    for (int blocks = MIN ; blocks < MAX ; ++blocks) {
+    for (int blocks = MIN; blocks < MAX; ++blocks) {
         pages[blocks] = heap.GetSmallPage(blocks);
         void* obj = pages[blocks]->TryAllocate();
-        mark(obj);  // to make the page survive a sweep
+        mark(obj); // to make the page survive a sweep
     }
     heap.PrepareForGC();
     heap.Sweep();
-    for (int blocks = MIN ; blocks < MAX ; ++blocks) {
+    for (int blocks = MIN; blocks < MAX; ++blocks) {
         EXPECT_EQ(pages[blocks], heap.GetSmallPage(blocks));
     }
 }
@@ -44,10 +44,10 @@ TEST(CustomAllocTest, HeapReuseMediumPages) {
     const uint32_t BLOCKSIZE = SMALL_PAGE_MAX_BLOCK_SIZE + 42;
     MediumPage* page = heap.GetMediumPage(BLOCKSIZE);
     void* obj = page->TryAllocate(BLOCKSIZE);
-    mark(obj);  // to make the page survive a sweep
+    mark(obj); // to make the page survive a sweep
     heap.PrepareForGC();
     heap.Sweep();
     EXPECT_EQ(page, heap.GetMediumPage(BLOCKSIZE));
 }
 
-}  // namespace
+} // namespace

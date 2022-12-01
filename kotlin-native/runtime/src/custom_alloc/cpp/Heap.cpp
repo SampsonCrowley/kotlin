@@ -3,10 +3,12 @@
 #include "Heap.hpp"
 
 #include <atomic>
+#include <cstdint>
 #include <cstdlib>
 #include <cinttypes>
 #include <new>
 
+#include "CustomAllocConstants.hpp"
 #include "CustomLogging.hpp"
 #include "LargePage.hpp"
 #include "MediumPage.hpp"
@@ -24,14 +26,14 @@ void Heap::PrepareForGC() noexcept {
 
     mediumPages_.PrepareForGC();
     largePages_.PrepareForGC();
-    for (int blockSize = 0 ; blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE ; ++blockSize) {
+    for (size_t blockSize = 0; blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE; ++blockSize) {
         smallPages_[blockSize].PrepareForGC();
     }
 }
 
 void Heap::Sweep() noexcept {
     CustomAllocDebug("Heap::Sweep()");
-    for (int blockSize = 0 ; blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE ; ++blockSize) {
+    for (size_t blockSize = 0; blockSize <= SMALL_PAGE_MAX_BLOCK_SIZE; ++blockSize) {
         smallPages_[blockSize].Sweep();
     }
     mediumPages_.Sweep();
@@ -53,4 +55,4 @@ LargePage* Heap::GetLargePage(uint64_t cellCount) noexcept {
     return largePages_.NewPage(cellCount);
 }
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc

@@ -14,6 +14,6 @@ bool TryResetMark(void* ptr) noexcept;
 
 void* SafeAlloc(uint64_t size) noexcept;
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif

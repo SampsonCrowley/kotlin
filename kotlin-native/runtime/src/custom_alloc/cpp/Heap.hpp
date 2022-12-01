@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cstring>
 
+#include "CustomAllocConstants.hpp"
 #include "LargePage.hpp"
 #include "MediumPage.hpp"
 #include "PageStore.hpp"
@@ -28,11 +29,11 @@ public:
     LargePage* GetLargePage(uint64_t cellCount) noexcept;
 
 private:
-    PageStore<SmallPage> smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE+1];
+    PageStore<SmallPage> smallPages_[SMALL_PAGE_MAX_BLOCK_SIZE + 1];
     PageStore<MediumPage> mediumPages_;
     PageStore<LargePage> largePages_;
 };
 
-}  // namespace kotlin::alloc
+} // namespace kotlin::alloc
 
 #endif
