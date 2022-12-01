@@ -49,6 +49,17 @@ class FirScriptConfiguratorExtensionImpl(
 
         if (definition != null) {
 
+            definition.compilationConfiguration[ScriptCompilationConfiguration.defaultImports]?.forEach { defaultImport ->
+                val trimmed = defaultImport.trim()
+                val endsWithStar = trimmed.endsWith("*")
+                val stripped = if (endsWithStar) trimmed.substring(0, trimmed.length - 1) else trimmed
+                val fqName = FqName.fromSegments(stripped.split("."))
+                fileBuilder.imports += buildImport {
+                    importedFqName = fqName
+                    isAllUnder = endsWithStar
+                }
+            }
+
             definition.compilationConfiguration[ScriptCompilationConfiguration.baseClass]?.let { baseClass ->
                 val baseClassFqn = FqName.fromSegments(baseClass.typeName.split("."))
                 contextReceivers.add(buildContextReceiverWithFqName(baseClassFqn))
@@ -89,6 +100,8 @@ class FirScriptConfiguratorExtensionImpl(
                 )
             }
         }
+
+        build()
     }
 
     private fun buildContextReceiverWithFqName(baseClassFqn: FqName) =
