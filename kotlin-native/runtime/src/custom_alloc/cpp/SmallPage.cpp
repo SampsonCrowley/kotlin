@@ -43,23 +43,22 @@ bool SmallPage::Sweep() noexcept {
     // necessarily match an actual block starting point.
     SmallCell* end = cells_ + (SMALL_PAGE_CELL_COUNT + 1 - blockSize_);
     bool alive = false;
-    SmallCell* block = cells_;
     SmallCell** nextFree = &nextFree_;
-    while (block < end) {
-        while (block != *nextFree) {
-            SmallCell* cell = block;
-            if (!TryResetMark(block)) {
-                cell->nextFree = *nextFree;
-                *nextFree = block;
-                nextFree = &cell->nextFree;
-            } else {
-                alive = true;
-            }
-            block += blockSize_;
+	for (SmallCell* cell = cells_; cell < end; cell += blockSize_) {
+        // If the current cell is free, move on.
+        if (cell == *nextFree) {
+            nextFree = &cell->nextFree;
+            continue;
         }
-        if (block >= end) break;
-        nextFree = &block->nextFree;
-        block += blockSize_;
+        // If the current cell was marked, it's alive, and the whole page is alive.
+        if (TryResetMark(cell)) {
+            alive = true;
+            continue;
+        }
+        // Free the current block and insert it into the free list.
+        cell->nextFree = *nextFree;
+        *nextFree = cell;
+        nextFree = &cell->nextFree;
     }
     return alive;
 }
