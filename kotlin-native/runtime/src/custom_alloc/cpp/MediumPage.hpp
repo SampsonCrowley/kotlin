@@ -19,29 +19,6 @@ namespace kotlin::alloc {
 
 class alignas(8) MediumPage {
 public:
-    class Iterator {
-        public:
-            Cell& operator*() noexcept { return *cell_; }
-            Cell* operator->() noexcept { return cell_; }
-
-            Iterator& operator++() noexcept {
-                cell_ = cell_->Next();
-                return *this;
-            }
-
-            bool operator==(const Iterator& rhs) const noexcept { return cell_ == rhs.cell_; }
-            bool operator!=(const Iterator& rhs) const noexcept { return cell_ != rhs.cell_; }
-
-        private:
-            friend class MediumPage;
-            explicit Iterator(Cell* cell) noexcept : cell_(cell) {}
-
-            Cell* cell_;
-    };
-
-    Iterator begin() noexcept { return Iterator(cells_); }
-    Iterator end() noexcept { return Iterator(cells_ + MEDIUM_PAGE_CELL_COUNT); }
-
     static MediumPage* Create(uint32_t cellCount) noexcept;
 
     // Tries to allocate in current page, returns null if no free block in page is big enough
