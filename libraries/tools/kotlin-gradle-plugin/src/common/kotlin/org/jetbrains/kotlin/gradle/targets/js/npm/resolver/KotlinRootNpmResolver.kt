@@ -251,23 +251,18 @@ class KotlinRootNpmResolver internal constructor(
         logger: Logger,
         npmEnvironment: NpmEnvironment,
         yarnEnvironment: YarnEnv,
-        gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
-        compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
-        mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+        npmResolutionManager: KotlinNpmResolutionManager
     ): Installation {
         synchronized(projectResolvers) {
             state = RootResolverState.PROJECTS_CLOSED
 
-            val gradleNodeModules = gradleNodeModulesProvider.get()
-            val compositeNodeModules = compositeNodeModulesProvider.get()
-
             val projectResolutions = projectResolvers.values
-                .map { it.close(gradleNodeModulesProvider, compositeNodeModulesProvider, mayBeUpToDateTasksRegistry) }
+                .map { it.close(npmResolutionManager) }
                 .associateBy { it.project }
             val allNpmPackages = projectResolutions.values.flatMap { it.npmProjects }
 
-            gradleNodeModules.close()
-            compositeNodeModules.close()
+            npmResolutionManager.parameters.gradleNodeModulesProvider.get().close()
+            npmResolutionManager.parameters.compositeNodeModulesProvider.get().close()
 
             npmEnvironment.packageManager.prepareRootProject(
                 npmEnvironment,

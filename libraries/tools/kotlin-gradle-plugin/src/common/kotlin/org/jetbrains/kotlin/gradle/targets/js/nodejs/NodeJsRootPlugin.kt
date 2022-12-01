@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnResolution
 import org.jetbrains.kotlin.gradle.tasks.CleanDataTask
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.utils.castIsolatedKotlinPluginClassLoaderAware
+import org.jetbrains.kotlin.gradle.utils.providerWithLazyConvention
 
 open class NodeJsRootPlugin : Plugin<Project> {
     override fun apply(project: Project) {
@@ -131,6 +132,8 @@ open class NodeJsRootPlugin : Plugin<Project> {
 //        yarnResolutions_
         )
 
+        val objectFactory = project.objects
+
         val kotlinNpmResolutionManager: Provider<KotlinNpmResolutionManager> =
             project.gradle.sharedServices.registerIfAbsent("kotlin-npm-resolution-manager", KotlinNpmResolutionManager::class.java) {
                 it.parameters.resolver.set(nodeJs.resolver)
@@ -142,6 +145,13 @@ open class NodeJsRootPlugin : Plugin<Project> {
 //                it.parameters.rootProjectDir.set(nodeJs.rootProjectDir)
 ////                it.parameters.nodeJs.set(nodeJs)
 ////                it.parameters.yarn.set(yarnExtension)
+                it.parameters.packageJsonHandlers.set(
+                    objectFactory.providerWithLazyConvention {
+                        nodeJs.resolver.compilations.associate { compilation ->
+                            "${compilation.project.path}:${compilation.disambiguatedName}" to compilation.packageJsonHandlers
+                        }
+                    }
+                )
                 it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
                 it.parameters.compositeNodeModulesProvider.set(compositeNodeModulesProvider)
                 it.parameters.mayBeUpToDateTasksRegistry.set(MayBeUpToDatePackageJsonTasksRegistry.registerIfAbsent(project))

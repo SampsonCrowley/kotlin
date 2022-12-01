@@ -5,23 +5,17 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.npm
 
-import org.gradle.api.Incubating
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.service.ServiceRegistry
-import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinRootNpmResolution
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinPackageJsonTask
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnEnv
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
-import java.io.File
 
 /**
  * # NPM resolution state manager
@@ -47,7 +41,7 @@ import java.io.File
  *
  * **package-json-created**. This state also compilation local. Initiated by executing `packageJson`
  * task for particular compilation. If `packageJson` task is up-to-date, this state is reached by
- * first calling [KotlinCompilationNpmResolver.getResolutionOrResolveIfForced] which may be called
+ * first calling [KotlinCompilationNpmResolver.getResolutionOrResolve] which may be called
  * by compilation that depends on this compilation. Note that package.json will be executed only for
  * required compilations, while other may be missed.
  *
@@ -91,12 +85,15 @@ abstract class KotlinNpmResolutionManager internal constructor(
 //        val rootProjectDir: Property<File>
 ////        val nodeJs: Property<NodeJsRootExtension>
 ////        val yarn: Property<YarnRootExtension>
+        // pulled up from compilation resolver since it was failing with ClassNotFoundException on deserialization, see KT-49061
+        val packageJsonHandlers: MapProperty<String, List<PackageJson.() -> Unit>>
+
         val gradleNodeModulesProvider: Property<GradleNodeModulesCache>
         val compositeNodeModulesProvider: Property<CompositeNodeModulesCache>
         val mayBeUpToDateTasksRegistry: Property<MayBeUpToDatePackageJsonTasksRegistry>
     }
 
-//    val resolver = KotlinRootNpmResolver(
+    //    val resolver = KotlinRootNpmResolver(
 //        parameters.rootProjectName,
 //        parameters.rootProjectVersion,
 //        parameters.tasksRequirements,
@@ -208,8 +205,8 @@ abstract class KotlinNpmResolutionManager internal constructor(
         }
     }
 
-    internal val packageJsonFiles: Collection<File>
-        get() = state.npmProjects.map { it.packageJsonFile }
+//    internal val packageJsonFiles: Collection<File>
+//        get() = state.npmProjects.map { it.packageJsonFile }
 
     private fun prepareIfNeeded(
         logger: Logger,
@@ -232,9 +229,7 @@ abstract class KotlinNpmResolutionManager internal constructor(
                                 logger,
                                 npmEnvironment,
                                 yarnEnvironment,
-                                parameters.gradleNodeModulesProvider,
-                                parameters.compositeNodeModulesProvider,
-                                parameters.mayBeUpToDateTasksRegistry
+                                this
                             ).also {
                                 this.state = ResolutionState.Prepared(it)
                             }

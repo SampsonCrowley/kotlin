@@ -75,8 +75,8 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     private val compilationResolver
         get() = npmResolutionManager.get().resolver.get()[projectPath][compilationDisambiguatedName]
 
-    private val producer: KotlinCompilationNpmResolver.PackageJsonProducer
-        get() = compilationResolver.packageJsonProducer
+//    private val producer: KotlinCompilationNpmResolver.PackageJsonProducer
+//        get() = compilationResolver.packageJsonProducer
 
     @get:Input
     val packageJsonCustomFields: Map<String, Any?> by lazy {
@@ -102,6 +102,8 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
             .sorted()
     }
 
+    // nested inputs are processed in configuration phase
+    // so npmResolutionManager must not be used
     @get:Nested
     internal val producerInputs: KotlinCompilationNpmResolver.PackageJsonProducerInputs by lazy {
         confCompResolver.packageJsonProducer.inputs
@@ -115,9 +117,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     @TaskAction
     fun resolve() {
         compilationResolver.resolve(
-            gradleNodeModules = gradleNodeModules,
-            compositeNodeModules = compositeNodeModules,
-            mayBeUpToDateTasksRegistry = mayBeUpToDateTasksRegistry
+            npmResolutionManager = npmResolutionManager.get()
         )
     }
 

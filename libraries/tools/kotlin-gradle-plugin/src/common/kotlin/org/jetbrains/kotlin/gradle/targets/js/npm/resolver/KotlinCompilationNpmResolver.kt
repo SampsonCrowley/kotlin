@@ -14,6 +14,7 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
@@ -57,9 +58,9 @@ internal class KotlinCompilationNpmResolver(
 
     val compilationDisambiguatedName = compilation.disambiguatedName
 
-    val packageJsonHandlers by lazy {
-        compilation.packageJsonHandlers
-    }
+//    val packageJsonHandlers by lazy {
+//        compilation.packageJsonHandlers
+//    }
 
     val npmVersion by lazy {
         project.version.toString()
@@ -134,49 +135,36 @@ internal class KotlinCompilationNpmResolver(
     @Synchronized
     fun resolve(
         skipWriting: Boolean = false,
-        gradleNodeModules: Provider<GradleNodeModulesCache>,
-        compositeNodeModules: Provider<CompositeNodeModulesCache>,
-        mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+        npmResolutionManager: KotlinNpmResolutionManager
     ): KotlinCompilationNpmResolution {
         check(!closed) { "$this already closed" }
         check(resolution == null) { "$this already resolved" }
 
         return packageJsonProducer.createPackageJson(
             skipWriting,
-            gradleNodeModules,
-            compositeNodeModules,
-            mayBeUpToDateTasksRegistry
+            npmResolutionManager
         ).also {
             resolution = it
         }
     }
 
     @Synchronized
-    fun getResolutionOrResolveIfForced(
-        gradleNodeModules: Provider<GradleNodeModulesCache>,
-        compositeNodeModules: Provider<CompositeNodeModulesCache>,
-        mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
-    ): KotlinCompilationNpmResolution? {
-        if (resolution != null) return resolution
-        if (mayBeUpToDateTasksRegistry.get().shouldResolveNpmDependenciesFor(npmProject.packageJsonTaskPath)) {
-            // when we need to resolve the compilation but the task is UP-TO-DATE, so we don't have ready resolution yet
-            return resolve(skipWriting = true, gradleNodeModules, compositeNodeModules, mayBeUpToDateTasksRegistry)
-        }
-        return null // we don't need to resolve NPM dependencies for the compilation
+    fun getResolutionOrResolve(
+        npmResolutionManager: KotlinNpmResolutionManager
+    ): KotlinCompilationNpmResolution {
+
+        return resolution ?: resolve(
+            skipWriting = true,
+            npmResolutionManager
+        )
     }
 
     @Synchronized
     fun close(
-        gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
-        compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
-        mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
-    ): KotlinCompilationNpmResolution? {
+        npmResolutionManager: KotlinNpmResolutionManager
+    ): KotlinCompilationNpmResolution {
         check(!closed) { "$this already closed" }
-        val resolution = getResolutionOrResolveIfForced(
-            gradleNodeModulesProvider,
-            compositeNodeModulesProvider,
-            mayBeUpToDateTasksRegistry
-        )
+        val resolution = getResolutionOrResolve(npmResolutionManager)
         closed = true
         return resolution
     }
@@ -435,25 +423,21 @@ internal class KotlinCompilationNpmResolver(
 
         fun createPackageJson(
             skipWriting: Boolean,
-            gradleNodeModules: Provider<GradleNodeModulesCache>,
-            compositeNodeModules: Provider<CompositeNodeModulesCache>,
-            mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+            npmResolutionManager: KotlinNpmResolutionManager
         ): KotlinCompilationNpmResolution {
             internalDependencies.map {
-                compilationResolver.rootResolver[it.projectPath][it.compilationName].getResolutionOrResolveIfForced(
-                    gradleNodeModules,
-                    compositeNodeModules,
-                    mayBeUpToDateTasksRegistry
+                compilationResolver.rootResolver[it.projectPath][it.compilationName].getResolutionOrResolve(
+                    npmResolutionManager
                 ) ?: error("Unresolved dependent npm package: ${compilationResolver} -> $it")
             }
             val importedExternalGradleDependencies = externalGradleDependencies.mapNotNull {
-                gradleNodeModules.get().get(it.dependencyName, it.dependencyVersion, it.file)
+                npmResolutionManager.parameters.gradleNodeModulesProvider.get().get(it.dependencyName, it.dependencyVersion, it.file)
             } + fileCollectionDependencies.flatMap { dependency ->
                 dependency.files
                     // Gradle can hash with FileHasher only files and only existed files
                     .filter { it.isFile }
                     .map { file ->
-                        gradleNodeModules.get().get(
+                        npmResolutionManager.parameters.gradleNodeModulesProvider.get().get(
                             file.name,
                             dependency.dependencyVersion ?: "0.0.1",
                             file
@@ -467,7 +451,7 @@ internal class KotlinCompilationNpmResolver(
             val compositeDependencies = internalCompositeDependencies.flatMap { dependency ->
                 dependency.getPackages()
                     .map { file ->
-                        compositeNodeModules.get().get(
+                        npmResolutionManager.parameters.compositeNodeModulesProvider.get().get(
                             dependency.dependencyName,
                             dependency.dependencyVersion,
                             file
@@ -480,7 +464,7 @@ internal class KotlinCompilationNpmResolver(
 
             val otherNpmDependencies = toolsNpmDependencies + transitiveNpmDependencies
             val allNpmDependencies = disambiguateDependencies(externalNpmDependencies, otherNpmDependencies)
-            val packageJsonHandlers = compilationResolver.packageJsonHandlers /*if (compilationResolver.compilation != null) {
+            val packageJsonHandlers = npmResolutionManager.parameters.packageJsonHandlers.get()["$projectPath:${compilationResolver.compilationDisambiguatedName}"] ?: emptyList() /*if (compilationResolver.compilation != null) {
                 compilationResolver.compilation.packageJsonHandlers
             } else {
                 compilationResolver.rootResolver.getPackageJsonHandlers(projectPath, compilationResolver.compilationDisambiguatedName)

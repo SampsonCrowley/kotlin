@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 import org.jetbrains.kotlin.gradle.targets.js.npm.CompositeNodeModulesCache
 import org.jetbrains.kotlin.gradle.targets.js.npm.GradleNodeModulesCache
+import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinProjectNpmResolution
 import java.io.Serializable
 import kotlin.reflect.KClass
@@ -100,17 +101,15 @@ internal class KotlinProjectNpmResolver(
     }
 
     fun close(
-        gradleNodeModulesProvider: Provider<GradleNodeModulesCache>,
-        compositeNodeModulesProvider: Provider<CompositeNodeModulesCache>,
-        mayBeUpToDateTasksRegistry: Provider<MayBeUpToDatePackageJsonTasksRegistry>,
+        npmResolutionManager: KotlinNpmResolutionManager
     ): KotlinProjectNpmResolution {
         check(!closed)
         closed = true
 
         return KotlinProjectNpmResolution(
             projectPath,
-            byCompilation.values.mapNotNull {
-                it.close(gradleNodeModulesProvider, compositeNodeModulesProvider, mayBeUpToDateTasksRegistry)
+            byCompilation.values.map {
+                it.close(npmResolutionManager)
             },
             resolver.tasksRequirements.byTask
         )
