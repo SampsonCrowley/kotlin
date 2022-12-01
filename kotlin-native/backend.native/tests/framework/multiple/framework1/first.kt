@@ -7,6 +7,10 @@
 
 package multiple
 
+class Bar<T: List<T>>(t: T)
+
+class Baz<T : () -> T>(val t: T)
+
 interface I1 {
     fun getFortyTwo(): Int
 }

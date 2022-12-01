@@ -132,7 +132,11 @@ internal object CustomTypeMappers {
                     // Kotlin `null` keys and values are represented as `NSNull` singleton.
                     ObjCIdType
                 } else {
-                    translator.mapReferenceTypeIgnoringNullability(argument, objCExportScope)
+                    try {
+                        translator.mapReferenceTypeIgnoringNullability(argument, objCExportScope)
+                    } catch (e: ObjCTypeExportScope.RecursionBreachException) {
+                        ObjCIdType
+                    }
                 }
             }
 
