@@ -47,7 +47,7 @@ data class ObjCClassType(
 
     override fun render(attrsAndName: String) = buildString {
         append(className)
-        if (typeArguments.isNotEmpty()) {
+        if (!typeArguments.all { it == ObjCIdType }) {
             append("<")
             typeArguments.joinTo(this) { it.render() }
             append(">")
