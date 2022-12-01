@@ -494,7 +494,7 @@ private class ScriptToClassTransformer(
             transformAnnotations(data)
             typeRemapper.withinScope(this) {
                 val newDispatchReceiverParameter = dispatchReceiverParameter?.transform(data) ?: run {
-                    if (this.isScriptTopLevel(data)) {
+                    if (this.isCurrentScriptTopLevelDeclaration(data)) {
                         createThisReceiverParameter(IrDeclarationOrigin.SCRIPT_THIS_RECEIVER, scriptClassReceiver.type)
                     } else null
                 }
@@ -644,7 +644,7 @@ private class ScriptToClassTransformer(
         for (i in 0 until expression.typeArgumentsCount) {
             expression.putTypeArgument(i, expression.getTypeArgument(i)?.remapType())
         }
-        if (expression.dispatchReceiver == null && (expression.symbol.owner as? IrDeclaration)?.isScriptTopLevel(data) == true) {
+        if (expression.dispatchReceiver == null && (expression.symbol.owner as? IrDeclaration)?.needsScriptReceiver() == true) {
             expression.dispatchReceiver =
                 getAccessCallForScriptInstance(
                     data, expression.startOffset, expression.endOffset, expression.origin, originalReceiverParameter = null
@@ -654,7 +654,7 @@ private class ScriptToClassTransformer(
     }
 
     override fun visitGetField(expression: IrGetField, data: ScriptToClassTransformerContext): IrExpression {
-        if (expression.receiver == null && expression.symbol.owner.isScriptTopLevel(data)) {
+        if (expression.receiver == null && expression.symbol.owner.needsScriptReceiver()) {
             expression.receiver =
                 getAccessCallForScriptInstance(
                     data, expression.startOffset, expression.endOffset, expression.origin, originalReceiverParameter = null
@@ -817,12 +817,15 @@ private class ScriptToClassTransformer(
         return super.visitGetValue(expression, data)
     }
 
-    private fun IrDeclaration.isScriptTopLevel(data: ScriptToClassTransformerContext): Boolean {
+    private fun IrDeclaration.isCurrentScriptTopLevelDeclaration(data: ScriptToClassTransformerContext): Boolean {
         if (data.topLevelDeclaration == null || (parent != irScript && parent != irScriptClass)) return false
         val declarationToCompare = if (this is IrFunction) this.propertyIfAccessor else this
         // TODO: might be fragile, if we'll start to use transformed declaration on either side, try to find a way to detect or avoid
         return declarationToCompare == data.topLevelDeclaration
     }
+
+    private fun IrDeclaration.needsScriptReceiver() =
+        (this as? IrFunction)?.dispatchReceiverParameter?.origin == IrDeclarationOrigin.SCRIPT_THIS_RECEIVER
 }
 
 private class ScriptFixLambdasTransformer(val irScriptClass: IrClass) : IrElementTransformer<ScriptFixLambdasTransformerContext> {
