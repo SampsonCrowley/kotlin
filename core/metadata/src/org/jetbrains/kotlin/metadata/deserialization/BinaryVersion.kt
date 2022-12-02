@@ -25,7 +25,7 @@ abstract class BinaryVersion(private vararg val numbers: Int) {
             numbers.asList().subList(3, numbers.size).toList()
     } else emptyList()
 
-    abstract fun isCompatible(): Boolean
+    //abstract fun isCompatible(): Boolean
 
     fun toArray(): IntArray = numbers
 
