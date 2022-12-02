@@ -14,8 +14,6 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.work.NormalizeLineEndings
@@ -51,7 +49,7 @@ internal class KotlinCompilationNpmResolver(
     @Transient
     val compilation: KotlinJsCompilation
 ) : Serializable {
-//    @Transient
+    //    @Transient
     var rootResolver = projectResolver.resolver
 
     val npmProject = compilation.npmProject
@@ -120,12 +118,14 @@ internal class KotlinCompilationNpmResolver(
 
     val _packageJsonProducer: PackageJsonProducer
         get() {
-        val visitor = ConfigurationVisitor()
-        visitor.visit(createAggregatedConfiguration())
-        return visitor.toPackageJsonProducer()
-            .also { packageJsonProducer = it }
-        /*.also { it.compilationResolver = this }*/
-    }
+            return packageJsonProducer ?: run {
+                val visitor = ConfigurationVisitor()
+                visitor.visit(createAggregatedConfiguration())
+                visitor.toPackageJsonProducer()
+                    .also { packageJsonProducer = it }
+                /*.also { it.compilationResolver = this }*/
+            }
+        }
 
 //    val packageJsonProducer: PackageJsonProducer
 //        get() {
@@ -474,7 +474,9 @@ internal class KotlinCompilationNpmResolver(
 
             val otherNpmDependencies = toolsNpmDependencies + transitiveNpmDependencies
             val allNpmDependencies = disambiguateDependencies(externalNpmDependencies, otherNpmDependencies)
-            val packageJsonHandlers = npmResolutionManager.parameters.packageJsonHandlers.get()["$projectPath:${compilationResolver.compilationDisambiguatedName}"] ?: emptyList() /*if (compilationResolver.compilation != null) {
+            val packageJsonHandlers =
+                npmResolutionManager.parameters.packageJsonHandlers.get()["$projectPath:${compilationResolver.compilationDisambiguatedName}"]
+                    ?: emptyList() /*if (compilationResolver.compilation != null) {
                 compilationResolver.compilation.packageJsonHandlers
             } else {
                 compilationResolver.rootResolver.getPackageJsonHandlers(projectPath, compilationResolver.compilationDisambiguatedName)
