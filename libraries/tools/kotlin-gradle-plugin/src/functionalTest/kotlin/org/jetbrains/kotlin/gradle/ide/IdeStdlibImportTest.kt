@@ -7,19 +7,21 @@
 
 package org.jetbrains.kotlin.gradle.ide
 
+import org.gradle.api.Project
 import org.jetbrains.kotlin.compilerRunner.konanVersion
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtension
+import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.testFixtures.tcs.assertMatches
 import org.jetbrains.kotlin.gradle.idea.testFixtures.tcs.binaryCoordinates
 import org.jetbrains.kotlin.gradle.idea.testFixtures.tcs.friendSourceDependency
 import org.jetbrains.kotlin.gradle.kpm.idea.mavenCentralCacheRedirector
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.ide.kotlinIdeMultiplatformImport
 import org.jetbrains.kotlin.gradle.utils.androidExtension
 import org.junit.Test
-
 class IdeStdlibImportTest {
 
     @Test
@@ -31,29 +33,10 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        val commonMain = kotlin.sourceSets.getByName("commonMain")
-        val commonTest = kotlin.sourceSets.getByName("commonTest")
-        val jvmMain = kotlin.sourceSets.getByName("jvmMain")
-        val jvmTest = kotlin.sourceSets.getByName("jvmTest")
-
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            jvmStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
-            friendSourceDependency(":/jvmMain"),
-            friendSourceDependency(":/commonMain"),
-            jvmStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jvmMain).assertMatches(
-            dependsOnDependency(commonMain),
-            jvmStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jvmTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/jvmMain"),
-            friendSourceDependency(":/commonMain"),
-            jvmStdlibDependencies(kotlin),
-        )
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonMain"), jvmStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonTest"), jvmStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("jvmMain"), jvmStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("jvmTest"), jvmStdlibDependencies(kotlin))
     }
 
     @Test
@@ -65,29 +48,10 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        val commonMain = kotlin.sourceSets.getByName("commonMain")
-        val commonTest = kotlin.sourceSets.getByName("commonTest")
-        val linuxMain = kotlin.sourceSets.getByName("linuxMain")
-        val linuxTest = kotlin.sourceSets.getByName("linuxTest")
-
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            linuxStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/linuxMain"),
-            linuxStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxMain).assertMatches(
-            dependsOnDependency(commonMain),
-            linuxStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/linuxMain"),
-            dependsOnDependency(commonTest),
-            linuxStdlibDependencies(kotlin),
-        )
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonMain"), nativeStdlibDependency(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonTest"), nativeStdlibDependency(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("linuxMain"), nativeStdlibDependency(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("linuxTest"), nativeStdlibDependency(kotlin))
     }
 
     @Test
@@ -99,29 +63,10 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        val commonMain = kotlin.sourceSets.getByName("commonMain")
-        val commonTest = kotlin.sourceSets.getByName("commonTest")
-        val jsMain = kotlin.sourceSets.getByName("jsMain")
-        val jsTest = kotlin.sourceSets.getByName("jsTest")
-
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            jsStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/jsMain"),
-            jsStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jsMain).assertMatches(
-            dependsOnDependency(commonMain),
-            jsStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jsTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/jsMain"),
-            dependsOnDependency(commonTest),
-            jsStdlibDependencies(kotlin),
-        )
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonMain"), jsStdlibDependency(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonTest"), jsStdlibDependency(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("jsMain"), jsStdlibDependency(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("jsTest"), jsStdlibDependency(kotlin))
     }
 
     @Test
@@ -134,37 +79,11 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        val commonMain = kotlin.sourceSets.getByName("commonMain")
-        val commonTest = kotlin.sourceSets.getByName("commonTest")
-        val androidMain = kotlin.sourceSets.getByName("androidMain")
-        val androidUnitTest = kotlin.sourceSets.getByName("androidTest")
-        val androidInstrumentedTest = kotlin.sourceSets.getByName("androidAndroidTest")
-
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            androidStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/androidMain"),
-            androidStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(androidMain).assertMatches(
-            dependsOnDependency(commonMain),
-            androidStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(androidUnitTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/androidMain"),
-            androidStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(androidInstrumentedTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/androidMain"),
-            friendSourceDependency(":/androidDebug"),
-            androidStdlibDependencies(kotlin),
-        )
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonMain"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonTest"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("androidMain"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("androidTest"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("androidAndroidTest"), androidStdlibDependencies(kotlin))
     }
 
     @Test
@@ -186,32 +105,19 @@ class IdeStdlibImportTest {
         val linuxTest = kotlin.sourceSets.getByName("linuxTest")
 
         project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            commonStdlibDependencies(kotlin)
+            commonStdlibDependency(kotlin)
         )
         project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
             friendSourceDependency(":/commonMain"),
-            commonStdlibDependencies(kotlin),
+            commonStdlibDependency(kotlin),
         )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jvmMain).assertMatches(
-            dependsOnDependency(commonMain),
-            jvmStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jvmTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/jvmMain"),
-            dependsOnDependency(commonTest),
-            jvmStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxMain).assertMatches(
-            dependsOnDependency(commonMain),
-            linuxStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/linuxMain"),
-            dependsOnDependency(commonTest),
-            linuxStdlibDependencies(kotlin),
-        )
+
+        project.assertStdlibDependencies(commonMain, commonStdlibDependency(kotlin))
+        project.assertStdlibDependencies(commonTest, commonStdlibDependency(kotlin))
+        project.assertStdlibDependencies(jvmMain, jvmStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(jvmTest, jvmStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(linuxMain, nativeStdlibDependency(kotlin))
+        project.assertStdlibDependencies(linuxTest, nativeStdlibDependency(kotlin))
     }
 
     @Test
@@ -237,25 +143,10 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            commonStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-            commonStdlibDependencies(kotlin),
-        )
-
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jvmIntermediateMain).assertMatches(
-            dependsOnDependency(commonMain),
-            jvmStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(jvmIntermediateTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/jvmMain"),
-            friendSourceDependency(":/jvmIntermediateMain"),
-            friendSourceDependency(":/commonMain"),
-            jvmStdlibDependencies(kotlin),
-        )
+        project.assertStdlibDependencies(commonMain, commonStdlibDependency(kotlin))
+        project.assertStdlibDependencies(commonTest, commonStdlibDependency(kotlin))
+        project.assertStdlibDependencies(jvmIntermediateMain, jvmStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(jvmIntermediateTest, jvmStdlibDependencies(kotlin))
     }
 
     @Test
@@ -281,17 +172,8 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxIntermediateMain).assertMatches(
-            dependsOnDependency(commonMain),
-            linuxStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxIntermediateTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/jvmMain"),
-            friendSourceDependency(":/jvmIntermediateMain"),
-            friendSourceDependency(":/commonMain"),
-            linuxStdlibDependencies(kotlin),
-        )
+        project.assertStdlibDependencies(linuxIntermediateMain, nativeStdlibDependency(kotlin))
+        project.assertStdlibDependencies(linuxIntermediateTest, nativeStdlibDependency(kotlin))
     }
 
     @Test
@@ -322,18 +204,8 @@ class IdeStdlibImportTest {
 
         project.evaluate()
 
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxSharedMain).assertMatches(
-            dependsOnDependency(commonMain),
-            binaryCoordinates("org.jetbrains.kotlin:stdlib-native:${project.konanVersion}"),
-            // TODO (kirpichenkov): commonized native distribution
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(linuxSharedTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/linuxSharedMain"),
-            binaryCoordinates("org.jetbrains.kotlin:stdlib-native:${project.konanVersion}"),
-            // TODO (kirpichenkov): commonized native distribution
-        )
+        project.assertStdlibDependencies(linuxSharedMain, nativeStdlibDependency(kotlin))
+        project.assertStdlibDependencies(linuxSharedTest, nativeStdlibDependency(kotlin))
     }
 
     @Test
@@ -341,41 +213,23 @@ class IdeStdlibImportTest {
         val project = createProjectWithAndroidAndDefaultStdlibEnabled()
 
         val kotlin = project.multiplatformExtension
-
         kotlin.android()
         kotlin.jvm()
 
         project.evaluate()
 
-        val commonMain = kotlin.sourceSets.getByName("commonMain")
-        val commonTest = kotlin.sourceSets.getByName("commonTest")
-        val androidMain = kotlin.sourceSets.getByName("androidMain")
-        val androidUnitTest = kotlin.sourceSets.getByName("androidTest")
-        val androidInstrumentedTest = kotlin.sourceSets.getByName("androidAndroidTest")
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonMain"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("commonTest"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("androidMain"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("androidTest"), androidStdlibDependencies(kotlin))
+        project.assertStdlibDependencies(kotlin.sourceSets.getByName("androidAndroidTest"), androidStdlibDependencies(kotlin))
+    }
 
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonMain).assertMatches(
-            // TODO (kirpichenkov): correct stdlib
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(commonTest).assertMatches(
-            friendSourceDependency(":/commonMain"),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(androidMain).assertMatches(
-            dependsOnDependency(commonMain),
-            androidStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(androidUnitTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/androidMain"),
-            androidStdlibDependencies(kotlin),
-        )
-        project.kotlinIdeMultiplatformImport.resolveDependencies(androidInstrumentedTest).assertMatches(
-            dependsOnDependency(commonTest),
-            friendSourceDependency(":/commonMain"),
-            friendSourceDependency(":/androidMain"),
-            friendSourceDependency(":/androidDebug"),
-            androidStdlibDependencies(kotlin),
-        )
+    private fun Project.assertStdlibDependencies(sourceSet: KotlinSourceSet, dependencies: Any) {
+        project.kotlinIdeMultiplatformImport.resolveDependencies(sourceSet)
+            .filterIsInstance<IdeaKotlinResolvedBinaryDependency>()
+            .filter { binaryDependency -> "stdlib" in binaryDependency.coordinates?.module.orEmpty() }
+            .assertMatches(dependencies)
     }
 
     private fun createProjectWithDefaultStdlibEnabled() = buildProject {
@@ -397,9 +251,8 @@ class IdeStdlibImportTest {
         repositories.google()
     }
 
-    private fun commonStdlibDependencies(kotlin: KotlinMultiplatformExtension) = listOf(
-        binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib-common:${kotlin.coreLibrariesVersion}"),
-    )
+    private fun commonStdlibDependency(kotlin: KotlinMultiplatformExtension) =
+        binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib-common:${kotlin.coreLibrariesVersion}")
 
     private fun androidStdlibDependencies(kotlin: KotlinMultiplatformExtension) = listOf<Any>(
         // TODO (kirpichenkov): android stdlib is missing
@@ -409,19 +262,11 @@ class IdeStdlibImportTest {
         binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin.coreLibrariesVersion}"),
         binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${kotlin.coreLibrariesVersion}"),
         binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib:${kotlin.coreLibrariesVersion}"),
-        binaryCoordinates("org.jetbrains:annotations:13.0"),
     )
 
-    private fun jsStdlibDependencies(kotlin: KotlinMultiplatformExtension) = listOf(
-        binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib-js:${kotlin.coreLibrariesVersion}"),
-    )
+    private fun jsStdlibDependency(kotlin: KotlinMultiplatformExtension) =
+        binaryCoordinates("org.jetbrains.kotlin:kotlin-stdlib-js:${kotlin.coreLibrariesVersion}")
 
-    private fun linuxStdlibDependencies(kotlin: KotlinMultiplatformExtension) = listOf(
-        binaryCoordinates("org.jetbrains.kotlin.native:platform.iconv:${kotlin.project.konanVersion}"),
-        binaryCoordinates("org.jetbrains.kotlin.native:platform.posix:${kotlin.project.konanVersion}"),
-        binaryCoordinates("org.jetbrains.kotlin.native:platform.zlib:${kotlin.project.konanVersion}"),
-        binaryCoordinates("org.jetbrains.kotlin.native:platform.linux:${kotlin.project.konanVersion}"),
-        binaryCoordinates("org.jetbrains.kotlin.native:platform.builtin:${kotlin.project.konanVersion}"),
-        binaryCoordinates("org.jetbrains.kotlin:stdlib-native:${kotlin.project.konanVersion}"),
-    )
+    private fun nativeStdlibDependency(kotlin: KotlinMultiplatformExtension) =
+        binaryCoordinates("org.jetbrains.kotlin.native:stdlib:${kotlin.project.konanVersion}")
 }
