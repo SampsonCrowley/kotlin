@@ -8,19 +8,21 @@ package org.jetbrains.kotlin.light.classes.symbol.annotations
 import com.intellij.psi.CommonClassNames.JAVA_LANG_ANNOTATION_RETENTION
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.light.LightReferenceListBuilder
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.annotations.KtConstantAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtEnumEntryAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtNamedAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.annotations
+import org.jetbrains.kotlin.analysis.api.annotations.*
+import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.KtFileSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtAnnotatedSymbol
+import org.jetbrains.kotlin.analysis.api.types.KtTypeMappingMode
 import org.jetbrains.kotlin.builtins.StandardNames.DEFAULT_VALUE_PARAMETER
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.light.classes.symbol.NullabilityType
+import org.jetbrains.kotlin.light.classes.symbol.classes.SymbolLightClassBase
 import org.jetbrains.kotlin.light.classes.symbol.methods.SymbolLightMethod
 import org.jetbrains.kotlin.load.java.JvmAbi.JVM_FIELD_ANNOTATION_CLASS_ID
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames.RETENTION_POLICY_ENUM
@@ -30,6 +32,7 @@ import org.jetbrains.kotlin.name.JvmNames.JVM_NAME_CLASS_ID
 import org.jetbrains.kotlin.name.JvmNames.JVM_OVERLOADS_CLASS_ID
 import org.jetbrains.kotlin.name.JvmNames.JVM_SYNTHETIC_ANNOTATION_CLASS_ID
 import org.jetbrains.kotlin.resolve.annotations.JVM_STATIC_ANNOTATION_CLASS_ID
+import org.jetbrains.kotlin.resolve.annotations.JVM_THROWS_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationLevelValue
 import org.jetbrains.kotlin.resolve.inline.INLINE_ONLY_ANNOTATION_FQ_NAME
 
@@ -82,12 +85,24 @@ internal fun KtAnnotatedSymbol.hasInlineOnlyAnnotation(): Boolean =
     hasAnnotation(INLINE_ONLY_ANNOTATION_FQ_NAME, null)
 
 internal fun KtAnnotatedSymbol.hasAnnotation(classId: ClassId, annotationUseSiteTarget: AnnotationUseSiteTarget?): Boolean =
-    annotations.any {
+    findAnnotation(classId, annotationUseSiteTarget) != null
+
+internal fun KtAnnotatedSymbol.findAnnotation(
+    classId: ClassId,
+    annotationUseSiteTarget: AnnotationUseSiteTarget?
+): KtAnnotationApplication? =
+    annotations.find {
         it.useSiteTarget == annotationUseSiteTarget && it.classId == classId
     }
 
 internal fun KtAnnotatedSymbol.hasAnnotation(fqName: FqName, annotationUseSiteTarget: AnnotationUseSiteTarget?): Boolean =
-    annotations.any {
+    findAnnotation(fqName, annotationUseSiteTarget) != null
+
+internal fun KtAnnotatedSymbol.findAnnotation(
+    fqName: FqName,
+    annotationUseSiteTarget: AnnotationUseSiteTarget?
+): KtAnnotationApplication? =
+    annotations.find {
         it.useSiteTarget == annotationUseSiteTarget && it.classId?.asSingleFqName() == fqName
     }
 
@@ -178,3 +193,32 @@ private fun createRetentionRuntimeAnnotation(parent: PsiElement, retentionName: 
             )
         )
     )
+
+context(KtAnalysisSession)
+internal fun KtAnnotatedSymbol.computeThrowsList(
+    builder: LightReferenceListBuilder,
+    annotationUseSiteTarget: AnnotationUseSiteTarget?,
+    useSitePosition: PsiElement,
+    containingClass: SymbolLightClassBase,
+) {
+    val annoApp = findAnnotation(JVM_THROWS_ANNOTATION_FQ_NAME, annotationUseSiteTarget) ?: return
+
+    fun handleAnnotationValue(annotationValue: KtAnnotationValue) = when (annotationValue) {
+        is KtArrayAnnotationValue -> {
+            annotationValue.values.forEach(::handleAnnotationValue)
+        }
+        is KtKClassAnnotationValue.KtNonLocalKClassAnnotationValue -> {
+            val psiType = buildClassType(annotationValue.classId).asPsiType(
+                useSitePosition,
+                KtTypeMappingMode.DEFAULT,
+                containingClass.isAnnotationType
+            )
+            (psiType as? PsiClassType)?.let {
+                builder.addReference(it)
+            }
+        }
+        else -> {}
+    }
+
+    annoApp.arguments.forEach { handleAnnotationValue(it.expression) }
+}
