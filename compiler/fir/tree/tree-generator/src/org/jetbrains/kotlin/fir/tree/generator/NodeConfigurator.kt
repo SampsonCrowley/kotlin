@@ -702,7 +702,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
 
         resolvedContractDescription.configure {
             +fieldList("effects", effectDeclaration)
-            +fieldList("unresolvedEffects", statement)
+            +fieldList("unresolvedEffects", coneUnresolvedEffect)
         }
 
         legacyRawContractDescription.configure {

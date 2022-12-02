@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.contracts.FirRawContractDescription
 import org.jetbrains.kotlin.fir.contracts.builder.buildLegacyRawContractDescription
 import org.jetbrains.kotlin.fir.contracts.builder.buildResolvedContractDescription
 import org.jetbrains.kotlin.fir.contracts.description.ConeEffectDeclaration
+import org.jetbrains.kotlin.fir.contracts.description.ConeUnresolvedEffect
 import org.jetbrains.kotlin.fir.contracts.impl.FirEmptyContractDescription
 import org.jetbrains.kotlin.fir.contracts.toFirEffectDeclaration
 import org.jetbrains.kotlin.fir.declarations.*
@@ -181,7 +182,7 @@ abstract class FirAbstractContractResolveTransformerDispatcher(
                 for (statement in lambdaBody.statements) {
                     val effect = statement.accept(effectExtractor, null) as? ConeEffectDeclaration
                     if (effect == null) {
-                        unresolvedEffects += statement
+                        unresolvedEffects += ConeUnresolvedEffect(statement)
                     } else {
                         effects += effect.toFirEffectDeclaration(statement.source)
                     }
