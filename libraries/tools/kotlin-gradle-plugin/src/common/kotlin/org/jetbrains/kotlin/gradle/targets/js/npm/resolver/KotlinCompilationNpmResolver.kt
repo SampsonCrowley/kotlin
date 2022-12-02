@@ -116,10 +116,15 @@ internal class KotlinCompilationNpmResolver(
 
     override fun toString(): String = "KotlinCompilationNpmResolver(${npmProject.name})"
 
-    val packageJsonProducer: PackageJsonProducer by lazy {
+    var packageJsonProducer: PackageJsonProducer? = null
+
+    val _packageJsonProducer: PackageJsonProducer
+        get() {
         val visitor = ConfigurationVisitor()
         visitor.visit(createAggregatedConfiguration())
-        visitor.toPackageJsonProducer()/*.also { it.compilationResolver = this }*/
+        return visitor.toPackageJsonProducer()
+            .also { packageJsonProducer = it }
+        /*.also { it.compilationResolver = this }*/
     }
 
 //    val packageJsonProducer: PackageJsonProducer
@@ -135,6 +140,7 @@ internal class KotlinCompilationNpmResolver(
     @Synchronized
     fun resolve(
         skipWriting: Boolean = false,
+        packageJsonProducer: PackageJsonProducer,
         npmResolutionManager: KotlinNpmResolutionManager
     ): KotlinCompilationNpmResolution {
         check(!closed) { "$this already closed" }
@@ -150,11 +156,13 @@ internal class KotlinCompilationNpmResolver(
 
     @Synchronized
     fun getResolutionOrResolve(
-        npmResolutionManager: KotlinNpmResolutionManager
+        npmResolutionManager: KotlinNpmResolutionManager,
+        packageJsonProducer: PackageJsonProducer
     ): KotlinCompilationNpmResolution {
 
         return resolution ?: resolve(
             skipWriting = true,
+            packageJsonProducer,
             npmResolutionManager
         )
     }
@@ -164,12 +172,12 @@ internal class KotlinCompilationNpmResolver(
         npmResolutionManager: KotlinNpmResolutionManager
     ): KotlinCompilationNpmResolution {
         check(!closed) { "$this already closed" }
-        val resolution = getResolutionOrResolve(npmResolutionManager)
+        val resolution = resolution!! /* getResolutionOrResolve(npmResolutionManager) */
         closed = true
         return resolution
     }
 
-    private fun createAggregatedConfiguration(): Configuration {
+    fun createAggregatedConfiguration(): Configuration {
         val all = project.configurations.create(compilation.disambiguateName("npm"))
 
         all.usesPlatformOf(target)
@@ -426,8 +434,10 @@ internal class KotlinCompilationNpmResolver(
             npmResolutionManager: KotlinNpmResolutionManager
         ): KotlinCompilationNpmResolution {
             internalDependencies.map {
-                compilationResolver.rootResolver[it.projectPath][it.compilationName].getResolutionOrResolve(
-                    npmResolutionManager
+                val kotlinCompilationNpmResolver = compilationResolver.rootResolver[it.projectPath][it.compilationName]
+                kotlinCompilationNpmResolver.getResolutionOrResolve(
+                    npmResolutionManager,
+                    kotlinCompilationNpmResolver._packageJsonProducer
                 ) ?: error("Unresolved dependent npm package: ${compilationResolver} -> $it")
             }
             val importedExternalGradleDependencies = externalGradleDependencies.mapNotNull {

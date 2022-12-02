@@ -72,6 +72,17 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
             it.resolver[projectPath][compilationDisambiguatedName]
         }
 
+    @get:Internal
+    internal val packageJsonProducer: KotlinCompilationNpmResolver.PackageJsonProducer by lazy {
+        confCompResolver.packageJsonProducer ?: run {
+            val visitor = confCompResolver.ConfigurationVisitor()
+            visitor.visit(confCompResolver.createAggregatedConfiguration())
+            visitor.toPackageJsonProducer()
+                .also { confCompResolver.packageJsonProducer = it }
+        }
+    /*.also { it.compilationResolver = this }*/
+    }
+
     private val compilationResolver
         get() = npmResolutionManager.get().resolver.get()[projectPath][compilationDisambiguatedName]
 
@@ -87,9 +98,9 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     }
 
     private fun findDependentTasks(): Collection<Any> =
-        confCompResolver.packageJsonProducer.internalDependencies.map { dependency ->
+        packageJsonProducer.internalDependencies.map { dependency ->
             nodeJs.resolver[dependency.projectPath][dependency.compilationName].npmProject.packageJsonTaskPath
-        } + confCompResolver.packageJsonProducer.internalCompositeDependencies.map { dependency ->
+        } + packageJsonProducer.internalCompositeDependencies.map { dependency ->
             dependency.includedBuild?.task(":$PACKAGE_JSON_UMBRELLA_TASK_NAME") ?: error("includedBuild instance is not available")
             dependency.includedBuild.task(":${RootPackageJsonTask.NAME}")
         }
@@ -106,7 +117,7 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     // so npmResolutionManager must not be used
     @get:Nested
     internal val producerInputs: KotlinCompilationNpmResolver.PackageJsonProducerInputs by lazy {
-        confCompResolver.packageJsonProducer.inputs
+        packageJsonProducer.inputs
     }
 
     @get:OutputFile
@@ -117,7 +128,8 @@ abstract class KotlinPackageJsonTask : DefaultTask() {
     @TaskAction
     fun resolve() {
         compilationResolver.resolve(
-            npmResolutionManager = npmResolutionManager.get()
+            npmResolutionManager = npmResolutionManager.get(),
+            packageJsonProducer = packageJsonProducer
         )
     }
 

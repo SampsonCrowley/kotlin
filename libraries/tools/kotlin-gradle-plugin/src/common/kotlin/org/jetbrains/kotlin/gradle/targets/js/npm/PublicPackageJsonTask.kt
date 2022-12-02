@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject.Companion.PACKAGE_JSON
+import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.KotlinCompilationNpmResolver
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.MayBeUpToDatePackageJsonTasksRegistry
 import org.jetbrains.kotlin.gradle.utils.property
 import java.io.File
@@ -58,9 +59,21 @@ constructor(
             it.resolver[projectPath][compilationName]
         }
 
+    @get:Internal
+    internal val packageJsonProducer: KotlinCompilationNpmResolver.PackageJsonProducer by lazy {
+        confCompResolver.packageJsonProducer ?: run {
+            val visitor = confCompResolver.ConfigurationVisitor()
+            visitor.visit(confCompResolver.createAggregatedConfiguration())
+            visitor.toPackageJsonProducer()
+                .also { confCompResolver.packageJsonProducer = it }
+        }
+        /*.also { it.compilationResolver = this }*/
+    }
+
     private val compilationResolution
         get() = compilationResolver.getResolutionOrResolve(
-            resolutionManager.get()
+            resolutionManager.get(),
+            packageJsonProducer
         ) ?: error("Compilation resolution isn't available")
 
     @get:Input
