@@ -6,6 +6,7 @@
 #include <atomic>
 
 #include "CustomLogging.hpp"
+#include "KAssert.h"
 
 namespace kotlin::alloc {
 
@@ -50,6 +51,10 @@ public:
     }
 
     bool isEmpty() noexcept { return stack_.load(std::memory_order_relaxed) == nullptr; }
+
+    ~AtomicStack() noexcept {
+        RuntimeAssert(isEmpty(), "AtomicStack must be empty when destroyed");
+    }
 
 private:
     std::atomic<T*> stack_{nullptr};

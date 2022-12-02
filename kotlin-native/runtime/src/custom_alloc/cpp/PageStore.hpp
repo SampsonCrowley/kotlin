@@ -58,6 +58,14 @@ public:
         return page;
     }
 
+    ~PageStore() noexcept {
+        T* page;
+        while ((page = empty_.Pop())) page->Destroy();
+        while ((page = ready_.Pop())) page->Destroy();
+        while ((page = used_.Pop())) page->Destroy();
+        while ((page = unswept_.Pop())) page->Destroy();
+    }
+
 private:
     AtomicStack<T> empty_;
     AtomicStack<T> ready_;

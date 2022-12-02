@@ -19,7 +19,7 @@ using LargePage = typename kotlin::alloc::LargePage;
 #define MIN_BLOCK_SIZE 2
 
 void mark(void* obj) {
-    reinterpret_cast<uint8_t*>(obj)[0] = 1;
+    reinterpret_cast<uint64_t*>(obj)[0] = 1;
 }
 
 TEST(CustomAllocTest, HeapReuseSmallPages) {
