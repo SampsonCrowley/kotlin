@@ -6,10 +6,6 @@
 package org.jetbrains.kotlin.gradle.plugin.ide
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
-import org.jetbrains.kotlin.gradle.idea.serialize.IdeaKotlinBooleanExtrasSerializer
-import org.jetbrains.kotlin.gradle.idea.serialize.IdeaKotlinExtrasSerializer
-import org.jetbrains.kotlin.gradle.idea.tcs.extras.*
-import org.jetbrains.kotlin.gradle.kpm.idea.kotlinDebugKey
 import org.jetbrains.kotlin.gradle.plugin.ide.IdeMultiplatformImport.SourceSetConstraint
 import org.jetbrains.kotlin.gradle.plugin.ide.dependencyResolvers.*
 
@@ -110,13 +106,6 @@ internal fun IdeMultiplatformImport(extension: KotlinProjectExtension): IdeMulti
             constraint = SourceSetConstraint.unconstrained
         )
 
-        registerExtrasSerializationExtension {
-            register(kotlinDebugKey, IdeaKotlinExtrasSerializer.javaIoSerializable())
-            register(KlibExtra.key, IdeaKotlinExtrasSerializer.javaIoSerializable())
-            register(isIdeaProjectLevelKey, IdeaKotlinBooleanExtrasSerializer)
-            register(isNativeDistributionKey, IdeaKotlinBooleanExtrasSerializer)
-            register(isNativeStdlibKey, IdeaKotlinBooleanExtrasSerializer)
-            register(isCommonizedKey, IdeaKotlinBooleanExtrasSerializer)
-        }
+        registerExtrasSerializationExtension(kotlinExtrasSerialization)
     }
 }
