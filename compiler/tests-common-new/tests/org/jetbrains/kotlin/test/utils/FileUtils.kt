@@ -8,13 +8,17 @@ package org.jetbrains.kotlin.test.utils
 import org.jetbrains.kotlin.test.directives.model.Directive
 import java.io.File
 
-private const val FIR_KT = ".fir.kt"
 private const val KT = ".kt"
-private const val FIR_KTS = ".fir.kts"
 private const val KTS = ".kts"
 
+private const val FIR_PREFIX = ".fir"
+private const val LL_FIR_PREFIX = ".ll.fir"
+
+private const val FIR_KT = "$FIR_PREFIX$KT"
+private const val FIR_KTS = "$FIR_PREFIX$KTS"
+
 val File.isFirTestData: Boolean
-    get() = name.endsWith(FIR_KT) || name.endsWith((FIR_KTS))
+    get() = isCustomTestData(FIR_PREFIX)
 
 val File.originalTestDataFile: File
     get() = if (isFirTestData) {
@@ -27,14 +31,35 @@ val File.originalTestDataFile: File
     }
 
 val File.firTestDataFile: File
-    get() = if (isFirTestData) {
+    get() = customTestDataFile(FIR_PREFIX)
+
+/**
+ * @see File.llFirTestDataFile
+ */
+val File.isLLFirTestData: Boolean
+    get() = isCustomTestData(LL_FIR_PREFIX)
+
+/**
+ * An LL FIR test data file allows tailoring the expected output of a test to the LL FIR case. In very rare cases, LL FIR may legally
+ * diverge from the output of the K2 compiler, such as when the compiler's error behavior is deliberately unspecified. (For an example, see
+ * `kotlinJavaKotlinCycle.ll.fir.kt`.)
+ */
+val File.llFirTestDataFile: File
+    get() = customTestDataFile(LL_FIR_PREFIX)
+
+private fun File.isCustomTestData(prefix: String): Boolean =
+    name.endsWith("$prefix$KT") || name.endsWith("$prefix$KTS")
+
+private fun File.customTestDataFile(prefix: String): File {
+    return if (isCustomTestData(prefix)) {
         this
     } else {
-        val firTestDataFileName =
-            if (name.endsWith(KTS)) "${name.removeSuffix(KTS)}$FIR_KTS"
-            else "${name.removeSuffix(KT)}$FIR_KT"
-        parentFile.resolve(firTestDataFileName)
+        val customTestDataFileName =
+            if (name.endsWith(KTS)) "${name.removeSuffix(KTS)}$prefix$KTS"
+            else "${name.removeSuffix(KT)}$prefix$KT"
+        parentFile.resolve(customTestDataFileName)
     }
+}
 
 fun File.withExtension(extension: String): File {
     return withSuffixAndExtension(suffix = "", extension)

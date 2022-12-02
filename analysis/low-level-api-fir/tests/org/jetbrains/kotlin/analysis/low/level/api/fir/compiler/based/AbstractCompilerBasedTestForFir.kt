@@ -9,6 +9,7 @@ package org.jetbrains.kotlin.analysis.low.level.api.fir.compiler.based
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.DiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.getOrBuildFirFile
 import org.jetbrains.kotlin.analysis.low.level.api.fir.createFirResolveSessionForNoCaching
+import org.jetbrains.kotlin.analysis.low.level.api.fir.test.base.FirLowLevelCompilerBasedTestConfigurator
 import org.jetbrains.kotlin.analysis.low.level.api.fir.transformers.LLFirLazyTransformer
 import org.jetbrains.kotlin.analysis.test.framework.AbstractCompilerBasedTest
 import org.jetbrains.kotlin.analysis.test.framework.base.registerAnalysisApiBaseTestServices
@@ -27,11 +28,9 @@ import org.jetbrains.kotlin.test.model.DependencyKind
 import org.jetbrains.kotlin.test.model.FrontendFacade
 import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.model.TestModule
-import org.jetbrains.kotlin.test.services.TestServices
-import org.jetbrains.kotlin.test.services.compilerConfigurationProvider
-import org.jetbrains.kotlin.test.services.isKtFile
 import org.jetbrains.kotlin.test.services.*
-import org.jetbrains.kotlin.analysis.low.level.api.fir.test.base.FirLowLevelCompilerBasedTestConfigurator
+import org.jetbrains.kotlin.test.utils.llFirTestDataFile
+import java.io.File
 
 abstract class AbstractCompilerBasedTestForFir : AbstractCompilerBasedTest() {
     @OptIn(TestInfrastructureInternals::class)
@@ -91,10 +90,17 @@ abstract class AbstractCompilerBasedTestForFir : AbstractCompilerBasedTest() {
         if (ignoreTest(filePath, configuration)) {
             return
         }
+
+        // The file path will be additionally transformed in `FirOldFrontendMetaConfigurator`, but because an `.ll.fir.kt` file is also a
+        // FIR test data file, the path will not be changed and the test can be executed with the `.ll.fir.kt` file. That also makes
+        // `FIR_IDENTICAL` have no effect for LL FIR-specific tests.
+        val llFirFile = File(filePath).llFirTestDataFile
+        val actualFilePath = if (llFirFile.exists()) llFirFile.path else filePath
+
         val oldEnableDeepEnsure = LLFirLazyTransformer.needCheckingIfClassMembersAreResolved
         try {
             LLFirLazyTransformer.needCheckingIfClassMembersAreResolved = true
-            super.runTest(filePath)
+            super.runTest(actualFilePath)
         } finally {
             LLFirLazyTransformer.needCheckingIfClassMembersAreResolved = oldEnableDeepEnsure
         }
