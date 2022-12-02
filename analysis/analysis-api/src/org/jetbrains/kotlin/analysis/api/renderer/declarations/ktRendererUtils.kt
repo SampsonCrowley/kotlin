@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.analysis.api.renderer.declarations
 
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
+import org.jetbrains.kotlin.analysis.api.base.KtContextReceiversOwner
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.analysis.utils.printer.PrettyPrinter
 import org.jetbrains.kotlin.lexer.KtKeywordToken
@@ -26,6 +27,8 @@ public fun <S> renderAnnotationsAndModifiers(
     printer: PrettyPrinter,
     keywords: List<KtKeywordToken>,
 ): Unit where S : KtAnnotated, S : KtDeclarationSymbol = printer {
+    renderContextReceivers(symbol, printer)
+
     val annotationsRendered: Boolean
     val modifiersRendered: Boolean
     codeStyle.getSeparatorBetweenAnnotationAndOwner(symbol).separated(
@@ -43,14 +46,25 @@ public fun <S> renderAnnotationsAndModifiers(
     }
 }
 
-
 context(KtAnalysisSession, KtDeclarationRenderer)
 public fun <S> renderAnnotationsAndModifiers(
     symbol: S,
     printer: PrettyPrinter,
 ): Unit where S : KtAnnotated, S : KtDeclarationSymbol = printer {
+    renderContextReceivers(symbol, printer)
     codeStyle.getSeparatorBetweenAnnotationAndOwner(symbol).separated(
         { annotationRenderer.renderAnnotations(symbol, printer) },
         { modifiersRenderer.renderDeclarationModifiers(symbol, printer) }
     )
+}
+
+context(KtAnalysisSession, KtDeclarationRenderer)
+private fun renderContextReceivers(symbol: KtDeclarationSymbol, printer: PrettyPrinter): Unit = printer {
+    if (symbol !is KtContextReceiversOwner) return
+
+    with(typeRenderer) {
+        withSuffix(codeStyle.getSeparatorAfterContextReceivers()) {
+            contextReceiversRenderer.renderContextReceivers(symbol, printer)
+        }
+    }
 }
