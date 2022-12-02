@@ -132,6 +132,8 @@ bitcode {
         module("custom_alloc") {
             headersDirs.from(files("src/main/cpp", "src/mm/cpp", "src/gc/common/cpp", "src/gc/cms/cpp"))
             compilerArgs.add("-DCUSTOM_ALLOCATOR")
+            // Directly depends on cms which is only supported with threads.
+            onlyIf { targetSupportsThreads(target.name) }
         }
 
         module("opt_alloc") {
