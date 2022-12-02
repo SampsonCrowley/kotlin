@@ -36,8 +36,7 @@ private:
     MediumPage* next_;
 
     Cell* curBlock_;
-    Cell kZeroBlock_; // simplifies code to have a dummy empty cell in the same address neighborhood
-    Cell cells_[];
+    Cell cells_[]; // cells_[0] is reserved for an empty block
 };
 } // namespace kotlin::alloc
 

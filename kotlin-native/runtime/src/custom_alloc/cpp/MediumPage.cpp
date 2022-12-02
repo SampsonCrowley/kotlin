@@ -21,8 +21,9 @@ void MediumPage::Destroy() noexcept {
     std_support::free(this);
 }
 
-MediumPage::MediumPage(uint32_t cellCount) noexcept : curBlock_(cells_), kZeroBlock_(0) {
-    cells_[0] = Cell(MEDIUM_PAGE_CELL_COUNT);
+MediumPage::MediumPage(uint32_t cellCount) noexcept : curBlock_(cells_) {
+    cells_[0] = Cell(0); // Size 0 ensures any actual use would break
+    cells_[1] = Cell(MEDIUM_PAGE_CELL_COUNT - 1);
 }
 
 uint8_t* MediumPage::TryAllocate(uint32_t blockSize) noexcept {
@@ -39,17 +40,17 @@ bool MediumPage::Sweep() noexcept {
     CustomAllocDebug("MediumPage@%p::Sweep()", this);
     Cell* end = cells_ + MEDIUM_PAGE_CELL_COUNT;
     bool alive = false;
-    for (Cell* block = cells_; block != end; block = block->Next()) {
+    for (Cell* block = cells_ + 1; block != end; block = block->Next()) {
         if (block->isAllocated_) {
-            if (TryResetMark(block->Data())) {
+            if (TryResetMark(block->data_)) {
                 alive = true;
             } else {
                 block->Deallocate();
             }
         }
     }
-    Cell* maxBlock = &kZeroBlock_;
-    for (Cell* block = cells_; block != end; block = block->Next()) {
+    Cell* maxBlock = cells_; // size 0 block
+    for (Cell* block = cells_ + 1; block != end; block = block->Next()) {
         if (block->isAllocated_) continue;
         while (block->Next() != end && !block->Next()->isAllocated_) {
             block->size_ += block->Next()->size_;
@@ -62,9 +63,9 @@ bool MediumPage::Sweep() noexcept {
 
 void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
     CustomAllocDebug("MediumPage@%p::UpdateCurBlock(%u)", this, cellsNeeded);
-    if (curBlock_ == &kZeroBlock_) curBlock_ = cells_;
+    if (curBlock_ == cells_) curBlock_ = cells_ + 1; // only used as a starting point
     Cell* end = cells_ + MEDIUM_PAGE_CELL_COUNT;
-    Cell* maxBlock = &kZeroBlock_;
+    Cell* maxBlock = cells_; // size 0 block
     for (Cell* block = curBlock_; block != end; block = block->Next()) {
         if (!block->isAllocated_ && block->size_ > maxBlock->size_) {
             maxBlock = block;
@@ -75,7 +76,7 @@ void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
         }
     }
     CustomAllocDebug("MediumPage@%p::UpdateCurBlock: starting from beginning", this);
-    for (Cell* block = cells_; block != curBlock_; block = block->Next()) {
+    for (Cell* block = cells_ + 1; block != curBlock_; block = block->Next()) {
         if (!block->isAllocated_ && block->size_ > maxBlock->size_) {
             maxBlock = block;
             if (block->size_ >= cellsNeeded) {
@@ -88,8 +89,8 @@ void MediumPage::UpdateCurBlock(uint32_t cellsNeeded) noexcept {
 }
 
 bool MediumPage::CheckInvariants() noexcept {
-    if (curBlock_ < &kZeroBlock_ || curBlock_ >= cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
-    for (Cell* cur = cells_;; cur = cur->Next()) {
+    if (curBlock_ < cells_ || curBlock_ >= cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
+    for (Cell* cur = cells_ + 1;; cur = cur->Next()) {
         if (cur->Next() <= cur) return false;
         if (cur->Next() > cells_ + MEDIUM_PAGE_CELL_COUNT) return false;
         if (cur->Next() == cells_ + MEDIUM_PAGE_CELL_COUNT) return true;

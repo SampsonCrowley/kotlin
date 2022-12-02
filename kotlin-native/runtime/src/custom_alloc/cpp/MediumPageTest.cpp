@@ -44,13 +44,13 @@ TEST(CustomAllocTest, MediumPageAlloc) {
     uint8_t* p2 = alloc(page, MIN_BLOCK_SIZE);
     uint64_t dist = abs(p1 - p2);
     EXPECT_EQ(dist, (MIN_BLOCK_SIZE + 1) * sizeof(kotlin::alloc::Cell));
-    free(page);
+    page->Destroy();
 }
 
 TEST(CustomAllocTest, MediumPageSweepEmptyPage) {
     MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
     EXPECT_FALSE(page->Sweep());
-    free(page);
+    page->Destroy();
 }
 
 TEST(CustomAllocTest, MediumPageSweepFullUnmarkedPage) {
@@ -59,7 +59,7 @@ TEST(CustomAllocTest, MediumPageSweepFullUnmarkedPage) {
         MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
         while (alloc(page, MIN_BLOCK_SIZE + r() % 100)) {}
         EXPECT_FALSE(page->Sweep());
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -67,7 +67,7 @@ TEST(CustomAllocTest, MediumPageSweepSingleMarked) {
     MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
     mark(alloc(page, MIN_BLOCK_SIZE));
     EXPECT_TRUE(page->Sweep());
-    free(page);
+    page->Destroy();
 }
 
 TEST(CustomAllocTest, MediumPageSweepSingleReuse) {
@@ -81,7 +81,7 @@ TEST(CustomAllocTest, MediumPageSweepSingleReuse) {
         int count2 = 0;
         while (alloc(page, MIN_BLOCK_SIZE + r() % 100)) ++count2;
         EXPECT_EQ(count1, count2);
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -103,17 +103,16 @@ TEST(CustomAllocTest, MediumPageSweepReuse) {
         int freed = 0;
         while (alloc(page, MIN_BLOCK_SIZE)) ++freed;
         EXPECT_EQ(freed, unmarked);
-        free(page);
+        page->Destroy();
     }
 }
 
 TEST(CustomAllocTest, MediumPageSweepCoallesce) {
     MediumPage* page = MediumPage::Create(MIN_BLOCK_SIZE);
-    EXPECT_TRUE(alloc(page, MEDIUM_PAGE_CELL_COUNT / 2 - 1));
-    EXPECT_TRUE(alloc(page, MEDIUM_PAGE_CELL_COUNT / 2 - 1));
+    EXPECT_TRUE(alloc(page, (MEDIUM_PAGE_CELL_COUNT-1) / 2 - 1));
     EXPECT_FALSE(page->Sweep());
-    EXPECT_TRUE(alloc(page, MEDIUM_PAGE_CELL_COUNT - 1));
-    free(page);
+    EXPECT_TRUE(alloc(page, (MEDIUM_PAGE_CELL_COUNT-1) - 1));
+    page->Destroy();
 }
 
 #undef MIN_BLOCK_SIZE

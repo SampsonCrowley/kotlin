@@ -32,7 +32,7 @@ TEST(CustomAllocTest, LargePageSweepEmptyPage) {
     LargePage* page = alloc(MIN_BLOCK_SIZE);
     EXPECT_TRUE(page);
     EXPECT_FALSE(page->Sweep());
-    free(page);
+    page->Destroy();
 }
 
 TEST(CustomAllocTest, LargePageSweepFullPage) {
@@ -41,7 +41,7 @@ TEST(CustomAllocTest, LargePageSweepFullPage) {
     EXPECT_TRUE(page->Data());
     mark(page->Data());
     EXPECT_TRUE(page->Sweep());
-    free(page);
+    page->Destroy();
 }
 
 #undef MIN_BLOCK_SIZE

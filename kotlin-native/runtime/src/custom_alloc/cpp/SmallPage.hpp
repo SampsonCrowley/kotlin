@@ -11,7 +11,11 @@
 namespace kotlin::alloc {
 
 struct alignas(8) SmallCell {
-    SmallCell* nextFree;
+    // The SmallCell either contains data or a pointer to the next free cell
+    union {
+        uint8_t data[];
+        SmallCell* nextFree;
+    };
 };
 
 class alignas(8) SmallPage {

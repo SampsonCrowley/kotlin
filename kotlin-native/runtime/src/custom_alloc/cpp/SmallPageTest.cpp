@@ -36,7 +36,7 @@ TEST(CustomAllocTest, SmallPageConsequtiveAlloc) {
             EXPECT_EQ(prev + sizeof(kotlin::alloc::Cell) * size, cur);
             prev = cur;
         }
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -44,7 +44,7 @@ TEST(CustomAllocTest, SmallPageSweepEmptyPage) {
     for (uint32_t size = 2; size <= SMALL_PAGE_MAX_BLOCK_SIZE; ++size) {
         SmallPage* page = SmallPage::Create(size);
         EXPECT_FALSE(page->Sweep());
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -55,7 +55,7 @@ TEST(CustomAllocTest, SmallPageSweepFullUnmarkedPage) {
         while (alloc(page, size)) ++count;
         EXPECT_EQ(count, SMALL_PAGE_CELL_COUNT / size);
         EXPECT_FALSE(page->Sweep());
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -65,7 +65,7 @@ TEST(CustomAllocTest, SmallPageSweepSingleMarked) {
         uint8_t* ptr = alloc(page, size);
         mark(ptr);
         EXPECT_TRUE(page->Sweep());
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -75,7 +75,7 @@ TEST(CustomAllocTest, SmallPageSweepSingleReuse) {
         uint8_t* ptr = alloc(page, size);
         EXPECT_FALSE(page->Sweep());
         EXPECT_EQ(alloc(page, size), ptr);
-        free(page);
+        page->Destroy();
     }
 }
 
@@ -92,7 +92,7 @@ TEST(CustomAllocTest, SmallPageSweepReuse) {
             if (count % 2 == 0) mark(ptr);
         }
         EXPECT_EQ(count, SMALL_PAGE_CELL_COUNT / size / 2);
-        free(page);
+        page->Destroy();
     }
 }
 } // namespace

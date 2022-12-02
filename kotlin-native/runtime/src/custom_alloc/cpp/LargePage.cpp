@@ -23,7 +23,7 @@ void LargePage::Destroy() noexcept {
 }
 
 uint8_t* LargePage::Data() noexcept {
-    return reinterpret_cast<uint8_t*>(this + 1);
+    return data_;
 }
 
 uint8_t* LargePage::TryAllocate() noexcept {

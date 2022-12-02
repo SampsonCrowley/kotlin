@@ -26,6 +26,9 @@ private:
     friend class AtomicStack<LargePage>;
     LargePage* next_;
     bool isAllocated_ = false;
+    struct alignas(8) {
+        uint8_t data_[];
+    };
 };
 
 } // namespace kotlin::alloc

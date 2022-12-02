@@ -27,11 +27,7 @@ uint8_t* Cell::TryAllocate(uint32_t cellsNeeded) noexcept {
     newBlock->isAllocated_ = true;
     newBlock->size_ = cellsNeeded;
     RuntimeAssert(remainingSize == 0 || size_ + newBlock->size_ == oldSize, "sizes don't add up");
-    return newBlock->Data(); // Payload starts after header
-}
-
-uint8_t* Cell::Data() noexcept {
-    return reinterpret_cast<uint8_t*>(this + 1);
+    return newBlock->data_; // Payload starts after header
 }
 
 void Cell::Deallocate() noexcept {

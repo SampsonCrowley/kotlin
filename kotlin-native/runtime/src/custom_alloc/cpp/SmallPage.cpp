@@ -40,7 +40,7 @@ uint8_t* SmallPage::TryAllocate() noexcept {
     }
     nextFree_ = freeBlock->nextFree;
     CustomAllocDebug("SmallPage(%p){%u}::TryAllocate() = %p", this, blockSize_, freeBlock);
-    return reinterpret_cast<uint8_t*>(freeBlock);
+    return freeBlock->data;
 }
 
 bool SmallPage::Sweep() noexcept {
