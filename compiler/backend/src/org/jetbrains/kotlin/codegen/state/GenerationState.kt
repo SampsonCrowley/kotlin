@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.OptimizationClassBuilderFactory
 import org.jetbrains.kotlin.codegen.serialization.JvmSerializationBindings
 import org.jetbrains.kotlin.config.*
-import org.jetbrains.kotlin.config.LanguageVersion.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -31,7 +30,6 @@ import org.jetbrains.kotlin.idea.MainFunctionDetector
 import org.jetbrains.kotlin.load.java.components.JavaDeprecationSettings
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCache
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
-import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmMetadataVersion
 import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -49,9 +47,9 @@ import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfigu
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeApproximator
+import org.jetbrains.kotlin.utils.toMetadataVersion
 import org.jetbrains.org.objectweb.asm.Type
 import java.io.File
-import java.util.*
 
 class GenerationState private constructor(
     val project: Project,
@@ -429,32 +427,11 @@ class GenerationState private constructor(
     }
 
     companion object {
-        val LANGUAGE_TO_METADATA_VERSION = EnumMap<LanguageVersion, JvmMetadataVersion>(LanguageVersion::class.java).apply {
-            val oldMetadataVersion = JvmMetadataVersion(1, 1, 18)
-            this[KOTLIN_1_0] = oldMetadataVersion
-            this[KOTLIN_1_1] = oldMetadataVersion
-            this[KOTLIN_1_2] = oldMetadataVersion
-            this[KOTLIN_1_3] = oldMetadataVersion
-            this[KOTLIN_1_4] = JvmMetadataVersion(1, 4, 3)
-            this[KOTLIN_1_5] = JvmMetadataVersion(1, 5, 1)
-            this[KOTLIN_1_6] = JvmMetadataVersion(1, 6, 0)
-            this[KOTLIN_1_7] = JvmMetadataVersion(1, 7, 0)
-            this[KOTLIN_1_8] = JvmMetadataVersion.INSTANCE
-            this[KOTLIN_1_9] = JvmMetadataVersion(1, 9, 0)
-            this[KOTLIN_2_0] = JvmMetadataVersion(2, 0, 0)
-
-            check(size == LanguageVersion.values().size) {
-                "Please add mappings from the missing LanguageVersion instances to the corresponding JvmMetadataVersion " +
-                        "in `GenerationState.LANGUAGE_TO_METADATA_VERSION`"
-            }
-        }
-
         fun metadataVersion(
             configuration: CompilerConfiguration,
-            languageVersionSettings: LanguageVersionSettings = configuration.languageVersionSettings
+            languageVersion: LanguageVersion = configuration.languageVersionSettings.languageVersion
         ): BinaryVersion {
-            return configuration.get(CommonConfigurationKeys.METADATA_VERSION)
-                ?: LANGUAGE_TO_METADATA_VERSION.getValue(languageVersionSettings.languageVersion)
+            return configuration.get(CommonConfigurationKeys.METADATA_VERSION) ?: languageVersion.toMetadataVersion()
         }
     }
 }

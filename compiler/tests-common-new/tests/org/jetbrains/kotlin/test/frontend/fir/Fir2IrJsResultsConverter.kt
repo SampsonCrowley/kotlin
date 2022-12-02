@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDe
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
@@ -75,7 +74,7 @@ class Fir2IrJsResultsConverter(
 
         val icData = configuration.incrementalDataProvider?.getSerializedData(sourceFiles) ?: emptyList()
         val expectDescriptorToSymbol = mutableMapOf<DeclarationDescriptor, IrSymbol>()
-        val metadataVersion = GenerationState.metadataVersion(configuration, module.languageVersionSettings)
+        val metadataVersion = GenerationState.metadataVersion(configuration, module.languageVersionSettings.languageVersion)
 
         return IrBackendInput.JsIrBackendInput(
             irModuleFragment,
