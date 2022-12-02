@@ -75,9 +75,7 @@ class Fir2IrJsResultsConverter(
 
         val icData = configuration.incrementalDataProvider?.getSerializedData(sourceFiles) ?: emptyList()
         val expectDescriptorToSymbol = mutableMapOf<DeclarationDescriptor, IrSymbol>()
-        val metadataVersion =
-            configuration.get(CommonConfigurationKeys.METADATA_VERSION)
-                ?: GenerationState.LANGUAGE_TO_METADATA_VERSION.getValue(module.languageVersionSettings.languageVersion)
+        val metadataVersion = GenerationState.metadataVersion(configuration, module.languageVersionSettings)
 
         return IrBackendInput.JsIrBackendInput(
             irModuleFragment,
