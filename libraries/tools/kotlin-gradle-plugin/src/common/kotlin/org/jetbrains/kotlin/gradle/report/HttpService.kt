@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.report
 import com.google.gson.Gson
 import org.gradle.api.logging.Logger
 import java.io.IOException
+import java.io.Serializable
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
@@ -21,7 +22,7 @@ class HttpReportServiceImpl(
     private val url: String,
     private val password: String?,
     private val user: String?,
-) : HttpReportService {
+) : HttpReportService, Serializable {
     constructor(httpSettings: HttpReportSettings) : this(httpSettings.url, httpSettings.password, httpSettings.user)
 
     companion object {
@@ -78,11 +79,5 @@ class HttpReportServiceImpl(
             }
         }
         log.debug("Report statistic by http takes $elapsedTime ms")
-    }
-}
-
-class DummyReport() : HttpReportService {
-    override fun sendData(data: Any, log: Logger) {
-        TODO("Not yet implemented")
     }
 }

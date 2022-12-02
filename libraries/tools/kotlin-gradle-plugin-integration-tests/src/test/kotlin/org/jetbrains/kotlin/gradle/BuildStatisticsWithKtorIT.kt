@@ -42,7 +42,7 @@ class BuildStatisticsWithKtorIT : KGPBaseTest() {
     companion object {
         fun startKtorService(port: Int) = embeddedServer(Netty, port = port)
         {
-            val requests = ConcurrentLinkedQueue<String>()
+            val requests = ArrayBlockingQueue<String>(10)
 
             routing {
                 post("/badRequest") {
@@ -54,7 +54,11 @@ class BuildStatisticsWithKtorIT : KGPBaseTest() {
                     call.respond(HttpStatusCode.OK)
                 }
                 get("/validate") {
-                    call.respond(status = HttpStatusCode.OK, requests.poll())
+                    try {
+                        call.respond(status = HttpStatusCode.OK, requests.poll(1, TimeUnit.SECONDS))
+                    } catch (e: Exception) {
+                        call.respond(status = HttpStatusCode.NotFound, e.message ?: e::class)
+                    }
                 }
 
             }
@@ -85,6 +89,7 @@ class BuildStatisticsWithKtorIT : KGPBaseTest() {
                 val connection = URL("http://localhost:$port/validate").openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connect()
+                assertEquals(HttpStatusCode.OK.value, connection.responseCode)
                 val body = connection.inputStream.bufferedReader().readText()
                 val jsonObject = JsonParser.parseString(body).asJsonObject
                 validate(jsonObject)
