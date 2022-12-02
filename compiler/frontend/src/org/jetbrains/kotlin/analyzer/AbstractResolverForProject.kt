@@ -36,6 +36,9 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         }
     }
 
+    @Volatile
+    protected var isValid = true
+
     // Protected by ("projectContext.storageManager.lock")
     protected val descriptorByModule = hashMapOf<M, ModuleData>()
 
@@ -55,6 +58,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     abstract fun builtInsForModule(module: M): KotlinBuiltIns
     abstract fun createResolverForModule(descriptor: ModuleDescriptor, moduleInfo: M): ResolverForModule
     override fun tryGetResolverForModule(moduleInfo: M): ResolverForModule? {
+        checkValid()
         if (!isCorrectModuleInfo(moduleInfo)) {
             return null
         }
@@ -62,6 +66,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     }
 
     private fun setupModuleDescriptor(module: M, moduleDescriptor: ModuleDescriptorImpl) {
+        checkValid()
         moduleDescriptor.setDependencies(
             LazyModuleDependencies(
                 projectContext.storageManager,
@@ -124,7 +129,9 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      */
     private fun resolverForModuleDescriptorImpl(descriptor: ModuleDescriptor): ResolverForModule? {
         return projectContext.storageManager.compute {
+            checkValid()
             descriptor.assertValid()
+
             val module = moduleInfoByDescriptor[descriptor]
             if (module == null) {
                 if (delegateResolver is EmptyResolverForProject<*>) {
@@ -148,11 +155,13 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         }
 
     override fun descriptorForModule(moduleInfo: M): ModuleDescriptorImpl {
+        checkValid()
         checkModuleIsCorrect(moduleInfo)
         return doGetDescriptorForModule(moduleInfo)
     }
 
     override fun moduleInfoForModuleDescriptor(moduleDescriptor: ModuleDescriptor): M {
+        checkValid()
         return moduleInfoByDescriptor[moduleDescriptor] ?: delegateResolver.moduleInfoForModuleDescriptor(moduleDescriptor)
     }
 
@@ -213,6 +222,29 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         setupModuleDescriptor(module, moduleDescriptor)
         val modificationTracker = (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
         return ModuleData(moduleDescriptor, modificationTracker)
+    }
+
+    private fun checkValid() {
+        if (!isValid) {
+            reportInvalidResolver()
+        }
+    }
+
+    protected open fun reportInvalidResolver() {
+        throw InvalidResolverException("$name is invalidated")
+    }
+
+    fun invalidate() {
+        projectContext.storageManager.compute {
+            isValid = false
+            descriptorByModule.values.forEach {
+                moduleInfoByDescriptor.remove(it.moduleDescriptor)
+                it.moduleDescriptor.isValid = false
+            }
+            descriptorByModule.clear()
+            moduleInfoByDescriptor.keys.forEach { it.isValid = false }
+            moduleInfoByDescriptor.clear()
+        }
     }
 
     private fun renderResolversChainContents(): String {
@@ -334,3 +366,5 @@ private object DiagnoseUnknownModuleInfoReporter {
 
     private fun otherError(message: String) = KotlinExceptionWithAttachments(message)
 }
+
+class InvalidResolverException(message: String) : IllegalStateException(message)
