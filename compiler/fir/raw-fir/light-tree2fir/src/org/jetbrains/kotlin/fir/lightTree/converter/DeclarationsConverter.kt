@@ -1725,11 +1725,8 @@ class DeclarationsConverter(
         return when {
             blockNode != null -> {
                 val block = convertBlock(blockNode)
-                if (hasContractEffectList) {
-                    block to null
-                } else {
-                    block.extractContractDescriptionIfPossible()
-                }
+                val contractDescription = if (!hasContractEffectList) processLegacyContractDescription(block) else null
+                block to contractDescription
             }
             expression != null -> FirSingleExpressionBlock(
                 expressionConverter.getAsFirExpression<FirExpression>(expression, "Function has no body (but should)").toReturn()

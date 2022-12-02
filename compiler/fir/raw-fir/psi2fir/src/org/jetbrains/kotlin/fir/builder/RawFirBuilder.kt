@@ -365,11 +365,8 @@ open class RawFirBuilder(
                 buildOrLazyBlock {
                     if (hasBlockBody()) {
                         val block = bodyBlockExpression?.accept(this@Visitor, Unit) as? FirBlock
-                        return@buildFirBody if (hasContractEffectList()) {
-                            block to null
-                        } else {
-                            block.extractContractDescriptionIfPossible()
-                        }
+                        val contractDescription = if (!hasContractEffectList()) block?.let(::processLegacyContractDescription) else null
+                        return@buildFirBody block to contractDescription
                     } else {
                         val result = { bodyExpression }.toFirExpression("Function has no body (but should)")
                         FirSingleExpressionBlock(result.toReturn(baseSource = result.source))
