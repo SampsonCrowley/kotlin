@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.descriptors.runtime.components
 
 import org.jetbrains.kotlin.builtins.StandardNames
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.load.kotlin.KotlinClassFinder
 import org.jetbrains.kotlin.load.kotlin.KotlinClassFinder.Result.KotlinClass
@@ -33,9 +34,9 @@ class ReflectKotlinClassFinder(private val classLoader: ClassLoader) : KotlinCla
         return classLoader.tryLoadClass(fqName)?.let { ReflectKotlinClass.create(it) }?.let(::KotlinClass)
     }
 
-    override fun findKotlinClassOrContent(classId: ClassId) = findKotlinClass(classId.toRuntimeFqName())
+    override fun findKotlinClassOrContent(classId: ClassId, languageVersion: LanguageVersion) = findKotlinClass(classId.toRuntimeFqName())
 
-    override fun findKotlinClassOrContent(javaClass: JavaClass): KotlinClassFinder.Result? {
+    override fun findKotlinClassOrContent(javaClass: JavaClass, languageVersion: LanguageVersion): KotlinClassFinder.Result? {
         // TODO: go through javaClass's class loader
         return findKotlinClass(javaClass.fqName?.asString() ?: return null)
     }

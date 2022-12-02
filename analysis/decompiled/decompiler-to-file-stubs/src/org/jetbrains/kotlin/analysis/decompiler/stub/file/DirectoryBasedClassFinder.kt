@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.analysis.decompiler.stub.file
 
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.load.java.structure.classId
 import org.jetbrains.kotlin.load.kotlin.KotlinClassFinder
@@ -18,9 +19,10 @@ class DirectoryBasedClassFinder(
     val packageDirectory: VirtualFile,
     val directoryPackageFqName: FqName
 ) : KotlinClassFinder {
-    override fun findKotlinClassOrContent(javaClass: JavaClass): KotlinClassFinder.Result? = findKotlinClassOrContent(javaClass.classId!!)
+    override fun findKotlinClassOrContent(javaClass: JavaClass, languageVersion: LanguageVersion): KotlinClassFinder.Result? =
+        findKotlinClassOrContent(javaClass.classId!!, languageVersion)
 
-    override fun findKotlinClassOrContent(classId: ClassId): KotlinClassFinder.Result? {
+    override fun findKotlinClassOrContent(classId: ClassId, languageVersion: LanguageVersion): KotlinClassFinder.Result? {
         if (classId.packageFqName != directoryPackageFqName) {
             return null
         }
@@ -50,7 +52,7 @@ private fun isKotlinWithCompatibleAbiVersion(file: VirtualFile): Boolean {
     if (!clsKotlinBinaryClassCache.isKotlinJvmCompiledFile(file)) return false
 
     val kotlinClass = clsKotlinBinaryClassCache.getKotlinBinaryClassHeaderData(file)
-    return kotlinClass != null && kotlinClass.metadataVersion.isCompatible()
+    return kotlinClass != null && kotlinClass.metadataVersion.isCompatibleWithDeployMetadataVersion()
 }
 
 

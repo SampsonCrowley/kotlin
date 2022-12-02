@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
-import org.jetbrains.kotlin.storage.StorageManager
 
 open class KotlinClsStubBuilder : ClsStubBuilder() {
     override fun getStubVersion() = ClassFileStubBuilder.STUB_VERSION + KotlinStubVersions.CLASSFILE_STUB_VERSION
@@ -60,7 +59,7 @@ open class KotlinClsStubBuilder : ClsStubBuilder() {
         val classId = kotlinClass.classId
         val packageFqName = header.packageName?.let { FqName(it) } ?: classId.packageFqName
 
-        if (!header.metadataVersion.isCompatible()) {
+        if (!header.metadataVersion.isCompatibleWithDeployMetadataVersion()) {
             return createIncompatibleAbiVersionFileStub()
         }
 

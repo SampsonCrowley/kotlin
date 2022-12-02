@@ -62,6 +62,11 @@ public class ReadKotlinClassHeaderAnnotationVisitor implements AnnotationVisitor
 
     @Nullable
     public KotlinClassHeader createHeader() {
+        return createHeader(JvmMetadataVersion.INSTANCE);
+    }
+
+    @Nullable
+    public KotlinClassHeader createHeader(JvmMetadataVersion metadataVersionFromLanguageVersion) {
         if (headerKind == null || metadataVersionArray == null) {
             return null;
         }
@@ -69,7 +74,7 @@ public class ReadKotlinClassHeaderAnnotationVisitor implements AnnotationVisitor
         JvmMetadataVersion metadataVersion =
                 new JvmMetadataVersion(metadataVersionArray, (extraInt & JvmAnnotationNames.METADATA_STRICT_VERSION_SEMANTICS_FLAG) != 0);
 
-        if (!metadataVersion.isCompatible()) {
+        if (!metadataVersion.isCompatible(metadataVersionFromLanguageVersion)) {
             incompatibleData = data;
             data = null;
         }

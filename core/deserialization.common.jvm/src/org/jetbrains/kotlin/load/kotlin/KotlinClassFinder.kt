@@ -16,14 +16,15 @@
 
 package org.jetbrains.kotlin.load.kotlin
 
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.serialization.deserialization.KotlinMetadataFinder
 
 interface KotlinClassFinder : KotlinMetadataFinder {
-    fun findKotlinClassOrContent(classId: ClassId): Result?
+    fun findKotlinClassOrContent(classId: ClassId, languageVersion: LanguageVersion): Result?
 
-    fun findKotlinClassOrContent(javaClass: JavaClass): Result?
+    fun findKotlinClassOrContent(javaClass: JavaClass, languageVersion: LanguageVersion): Result?
 
     sealed class Result {
         fun toKotlinJvmBinaryClass(): KotlinJvmBinaryClass? = (this as? KotlinClass)?.kotlinJvmBinaryClass
@@ -41,7 +42,7 @@ interface KotlinClassFinder : KotlinMetadataFinder {
 }
 
 fun KotlinClassFinder.findKotlinClass(classId: ClassId): KotlinJvmBinaryClass? =
-    findKotlinClassOrContent(classId)?.toKotlinJvmBinaryClass()
+    findKotlinClassOrContent(classId, LanguageVersion.LATEST_STABLE)?.toKotlinJvmBinaryClass()
 
 fun KotlinClassFinder.findKotlinClass(javaClass: JavaClass): KotlinJvmBinaryClass? =
-    findKotlinClassOrContent(javaClass)?.toKotlinJvmBinaryClass()
+    findKotlinClassOrContent(javaClass, LanguageVersion.LATEST_STABLE)?.toKotlinJvmBinaryClass()

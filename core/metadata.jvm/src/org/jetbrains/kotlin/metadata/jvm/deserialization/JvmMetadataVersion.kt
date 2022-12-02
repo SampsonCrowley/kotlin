@@ -14,23 +14,37 @@ import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 class JvmMetadataVersion(versionArray: IntArray, val isStrictSemantics: Boolean) : BinaryVersion(*versionArray) {
     constructor(vararg numbers: Int) : this(numbers, isStrictSemantics = false)
 
-    fun isCompatible(): Boolean =
+    fun isCompatibleWithDeployMetadataVersion(): Boolean {
+        return isCompatibleInternal(INSTANCE_INC)
+    }
+
+    fun isCompatible(metadataVersionFromLanguageVersion: JvmMetadataVersion): Boolean {
+        // * Compiler of deployVersion X (INSTANCE) with LV Y (metadataVersionFromLanguageVersion)
+        //   * can read metadata with version <= max(X+1, Y)
+        val limitVersion = maxOf(INSTANCE_INC, metadataVersionFromLanguageVersion)
+        return isCompatibleInternal(limitVersion)
+    }
+
+    private fun isCompatibleInternal(limitVersion: JvmMetadataVersion): Boolean {
         // NOTE: 1.0 is a pre-Kotlin-1.0 metadata version, with which the current compiler is incompatible
-        (major != 1 || minor != 0) &&
+        return (major != 1 || minor != 0) &&
                 if (isStrictSemantics) {
                     isCompatibleTo(INSTANCE)
                 } else {
-                    // Kotlin 1.N is able to read metadata of versions up to Kotlin 1.{N+1} (unless the version has strict semantics).
-                    // Kotlin 1.9 is able to read Kotlin 2.0
-                    // Kotlin K.* is able to read Kotlin M.* if K > M
-                    major == INSTANCE.major && minor <= INSTANCE.minor + 1 ||
-                            major == 2 && INSTANCE.major == 1 && minor == 9 ||
-                            major < INSTANCE.major
+                    this <= limitVersion
                 }
+    }
+
+    private fun inc(): JvmMetadataVersion {
+        if (minor < 9 || major > 1) return JvmMetadataVersion(major, minor + 1, patch)
+        return JvmMetadataVersion(2, 0, patch)
+    }
 
     companion object {
         @JvmField
         val INSTANCE = JvmMetadataVersion(1, 8, 0)
+
+        private val INSTANCE_INC = INSTANCE.inc()
 
         @JvmField
         val INVALID_VERSION = JvmMetadataVersion()

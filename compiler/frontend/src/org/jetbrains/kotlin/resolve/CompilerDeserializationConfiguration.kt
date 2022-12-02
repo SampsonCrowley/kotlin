@@ -5,12 +5,13 @@
 
 package org.jetbrains.kotlin.resolve
 
-import org.jetbrains.kotlin.config.AnalysisFlags
-import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
 
-class CompilerDeserializationConfiguration(languageVersionSettings: LanguageVersionSettings) : DeserializationConfiguration {
+class CompilerDeserializationConfiguration(private val languageVersionSettings: LanguageVersionSettings) : DeserializationConfiguration {
+    override val languageVersion: LanguageVersion
+        get() = languageVersionSettings.languageVersion
+
     override val skipMetadataVersionCheck = languageVersionSettings.getFlag(AnalysisFlags.skipMetadataVersionCheck)
 
     override val skipPrereleaseCheck = languageVersionSettings.getFlag(AnalysisFlags.skipPrereleaseCheck)

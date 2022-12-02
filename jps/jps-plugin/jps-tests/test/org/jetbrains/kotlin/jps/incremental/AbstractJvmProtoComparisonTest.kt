@@ -36,7 +36,7 @@ abstract class AbstractJvmProtoComparisonTest : AbstractProtoComparisonTest<Loca
     }
 
     override fun LocalFileKotlinClass.toProtoData(): ProtoData? {
-        assert(classHeader.metadataVersion.isCompatible()) { "Incompatible class ($classHeader): $location" }
+        assert(classHeader.metadataVersion.isCompatibleWithDeployMetadataVersion()) { "Incompatible class ($classHeader): $location" }
 
         val bytes by lazy { BitEncoding.decodeBytes(classHeader.data!!) }
         val strings by lazy { classHeader.strings!! }

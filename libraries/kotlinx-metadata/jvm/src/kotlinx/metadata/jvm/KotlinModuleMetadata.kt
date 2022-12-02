@@ -25,9 +25,13 @@ import org.jetbrains.kotlin.metadata.jvm.deserialization.serializeToByteArray
  *
  * @property bytes the byte array representing the contents of a `.kotlin_module` file
  */
-class KotlinModuleMetadata(@Suppress("CanBeParameter", "MemberVisibilityCanBePrivate") val bytes: ByteArray) {
-    @get:IgnoreInApiDump internal val data: ModuleMapping = ModuleMapping.loadModuleMapping(
-        bytes, javaClass.name, skipMetadataVersionCheck = false, isJvmPackageNameSupported = true
+class KotlinModuleMetadata(@Suppress("MemberVisibilityCanBePrivate") val bytes: ByteArray) {
+    @get:IgnoreInApiDump
+    internal val data: ModuleMapping = ModuleMapping.loadModuleMapping(
+        bytes, javaClass.name,
+        skipMetadataVersionCheck = false,
+        isJvmPackageNameSupported = true,
+        metadataVersionFromLanguageVersion = JvmMetadataVersion.INSTANCE
     ) {
         // TODO: report incorrect versions of modules
     }

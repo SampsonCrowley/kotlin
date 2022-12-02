@@ -9,10 +9,12 @@ import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.load.kotlin.KotlinClassFinder.Result.KotlinClass
 import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.util.PerformanceCounter
+import org.jetbrains.kotlin.utils.toMetadataVersion
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -46,14 +48,16 @@ class VirtualFileKotlinClass private constructor(
         private val LOG = Logger.getInstance(VirtualFileKotlinClass::class.java)
         private val perfCounter = PerformanceCounter.create("Binary class from Kotlin file")
 
-        internal fun create(file: VirtualFile, fileContent: ByteArray?): KotlinClassFinder.Result? {
+        internal fun create(file: VirtualFile, languageVersion: LanguageVersion, fileContent: ByteArray?): KotlinClassFinder.Result? {
             return perfCounter.time {
                 assert(file.extension == JavaClassFileType.INSTANCE.defaultExtension || file.fileType == JavaClassFileType.INSTANCE) { "Trying to read binary data from a non-class file $file" }
 
                 try {
                     val byteContent = fileContent ?: file.contentsToByteArray(false)
                     if (byteContent.isNotEmpty()) {
-                        val kotlinJvmBinaryClass = create(byteContent) { name, classVersion, header, innerClasses ->
+                        val kotlinJvmBinaryClass = create(
+                            byteContent, languageVersion.toMetadataVersion()
+                        ) { name, classVersion, header, innerClasses ->
                             VirtualFileKotlinClass(file, name, classVersion, header, innerClasses)
                         }
 

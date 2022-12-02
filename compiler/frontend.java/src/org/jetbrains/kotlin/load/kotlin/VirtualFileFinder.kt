@@ -20,8 +20,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.load.kotlin.KotlinBinaryClassCache
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.load.java.structure.impl.VirtualFileBoundJavaClass
 import org.jetbrains.kotlin.name.ClassId
@@ -32,12 +32,12 @@ abstract class VirtualFileFinder : KotlinClassFinder {
 
     abstract fun findSourceOrBinaryVirtualFile(classId: ClassId): VirtualFile?
 
-    override fun findKotlinClassOrContent(classId: ClassId): KotlinClassFinder.Result? {
+    override fun findKotlinClassOrContent(classId: ClassId, languageVersion: LanguageVersion): KotlinClassFinder.Result? {
         val file = findVirtualFileWithHeader(classId) ?: return null
-        return KotlinBinaryClassCache.getKotlinBinaryClassOrClassFileContent(file)
+        return KotlinBinaryClassCache.getKotlinBinaryClassOrClassFileContent(file, languageVersion)
     }
 
-    override fun findKotlinClassOrContent(javaClass: JavaClass): KotlinClassFinder.Result? {
+    override fun findKotlinClassOrContent(javaClass: JavaClass, languageVersion: LanguageVersion): KotlinClassFinder.Result? {
         var file = (javaClass as? VirtualFileBoundJavaClass)?.virtualFile ?: return null
 
         if (javaClass.outerClass != null) {

@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.load.java.lazy.descriptors
 
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -56,9 +57,9 @@ class LazyJavaPackageScope(
             val kotlinClassOrClassFileContent =
                 // These branches should be semantically equal, but the first one could be faster
                 if (request.javaClass != null)
-                    c.components.kotlinClassFinder.findKotlinClassOrContent(request.javaClass)
+                    c.components.kotlinClassFinder.findKotlinClassOrContent(request.javaClass, LanguageVersion.LATEST_STABLE)
                 else
-                    c.components.kotlinClassFinder.findKotlinClassOrContent(requestClassId)
+                    c.components.kotlinClassFinder.findKotlinClassOrContent(requestClassId, LanguageVersion.LATEST_STABLE)
 
             val kotlinBinaryClass = kotlinClassOrClassFileContent?.toKotlinJvmBinaryClass()
 

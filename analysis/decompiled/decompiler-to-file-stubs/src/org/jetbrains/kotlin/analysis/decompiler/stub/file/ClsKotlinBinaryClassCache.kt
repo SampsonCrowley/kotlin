@@ -63,7 +63,7 @@ class ClsKotlinBinaryClassCache {
     ): KotlinJvmBinaryClass? {
         if (ModelBranch.getFileBranch(file) != null) return null
         val classFileContent = try {
-            KotlinBinaryClassCache.getKotlinBinaryClassOrClassFileContent(file, fileContent)
+            KotlinBinaryClassCache.getKotlinBinaryClassOrClassFileContent(file, fileContent = fileContent)
         } catch (e: Exception) {
             if (e is ControlFlowException) throw e
             return null
