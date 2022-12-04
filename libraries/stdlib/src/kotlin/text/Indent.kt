@@ -98,14 +98,14 @@ public fun String.prependIndent(indent: String = "    "): String =
         }
         .joinToString("\n")
 
-private fun String.indentWidth(): Int = indexOfFirst { !it.isWhitespace() }.let { if (it == -1) length else it }
+public fun String.indentWidth(): Int = indexOfFirst { !it.isWhitespace() }.let { if (it == -1) length else it }
 
 private fun getIndentFunction(indent: String) = when {
     indent.isEmpty() -> { line: String -> line }
     else -> { line: String -> indent + line }
 }
 
-private inline fun List<String>.reindent(
+public inline fun List<String>.reindent(
     resultSizeEstimate: Int,
     indentAddFunction: (String) -> String,
     indentCutFunction: (String) -> String?
